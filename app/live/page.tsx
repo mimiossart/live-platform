@@ -20,7 +20,8 @@ export default function LiveFeed(){
    setStreams((rows||[]).map((r:any)=>({...r,profiles:byId[r.user_id]||null})));
   };
   load();
+  const refresh=setInterval(load,3000);
   const ch=supabase.channel("feed-lives").on("postgres_changes",{event:"*",schema:"public",table:"lives"},load).subscribe();
-  return()=>{active=false;supabase.removeChannel(ch)};
+  return()=>{active=false;clearInterval(refresh);supabase.removeChannel(ch)};
  },[]);
  return <main className="app"><div className="shell"><header className="topbar"><Link className="brand" href="/">Live<span>Wave</span></Link><Link className="ghost" href="/">Accueil</Link></header><div className="feed">{error&&<div className="notice">{error}</div>}{streams.map(s=><article className="slide" key={s.id}><div className="video-placeholder"><div className="play">▶</div></div><div className="overlay"/><div className="slide-info"><span className="live-badge">● LIVE · {s.viewer_count}</span><h2>{s.title}</h2><p><b>@{s.profiles?.username||"créateur"}</b></p><Link className="secondary" href={"/live/"+s.id}>Ouvrir le live</Link></div><div className="side-actions"><button className="round">♡</button><button className="round">💬</button><button className="round">↗</button></div></article>)}{!streams.length&&!error&&<div className="panel"><h2>Aucun live en cours</h2><p className="muted">Crée le premier live LiveWave.</p><Link className="primary" href="/create">Créer un live</Link></div>}</div></div></main>}
