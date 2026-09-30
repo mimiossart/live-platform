@@ -79,9 +79,9 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false, battle 
 
     const onSubscribed = (
       track: RemoteTrack,
-      _publication: RemoteTrackPublication,
+      publication: RemoteTrackPublication,
       participant: RemoteParticipant,
-    ) => attach(track, participant);
+    ) => attach(track, participant, publication.source);
 
     const onUnsubscribed = (
       track: RemoteTrack,
