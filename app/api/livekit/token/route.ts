@@ -36,7 +36,21 @@ export async function POST(request: Request) {
     );
   }
 
-  const isOwner = Boolean(user && live.user_id === user.id);\n  let isGuest = false;\n  if (user && !isOwner) { const { data: guest } = await supabase.from("live_guests").select("user_id").eq("live_id", liveId).eq("user_id", user.id).eq("status","accepted").maybeSingle(); isGuest = Boolean(guest); }
+  const isOwner = Boolean(user && live.user_id === user.id);
+  let isGuest = false;
+
+  if (user && !isOwner) {
+    const { data: guest } = await supabase
+      .from("live_guests")
+      .select("user_id")
+      .eq("live_id", liveId)
+      .eq("user_id", user.id)
+      .eq("status", "accepted")
+      .maybeSingle();
+
+    isGuest = Boolean(guest);
+  }
+
   const identity = user?.id ?? `viewer-${crypto.randomUUID()}`;
 
   const token = new AccessToken(apiKey, apiSecret, {
@@ -55,6 +69,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     serverUrl,
     participantToken: await token.toJwt(),
-    isOwner,\n    isGuest,
+    isOwner,
+    isGuest,
   });
 }
