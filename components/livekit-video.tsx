@@ -50,15 +50,15 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false, battle 
       return slot;
     };
 
-    const attach = (track: RemoteTrack, participant: RemoteParticipant) => {
+    const attach = (track: RemoteTrack, participant: RemoteParticipant, source?: Track.Source) => {
       if (track.kind === Track.Kind.Video) {
         const element = track.attach();
         if (element instanceof HTMLVideoElement) {
-          element.className = "livekit-video";
+          element.className = source === Track.Source.ScreenShare ? "livekit-video livekit-screen" : "livekit-video";
           element.autoplay = true;
           element.playsInline = true;
         }
-        getSlot(participant.identity)?.replaceChildren(element);
+        const slot=getSlot(participant.identity); if(source===Track.Source.ScreenShare){slot?.appendChild(element);} else {slot?.replaceChildren(element);}
       } else {
         const element = track.attach();
         element.className = "livekit-audio";
@@ -73,7 +73,7 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false, battle 
         const slot = containerRef.current?.querySelector(
           `[data-participant="${CSS.escape(participant.identity)}"]`,
         );
-        if (slot) slot.remove();
+        if (slot && !slot.querySelector(".livekit-video")) slot.remove();
       }
     };
 
@@ -140,7 +140,7 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false, battle 
         // Render tracks that were already published before this client connected.
         for (const participant of room.remoteParticipants.values()) {
           for (const publication of participant.videoTrackPublications.values()) {
-            if (publication.track) attach(publication.track, participant);
+            if (publication.track) attach(publication.track, participant, publication.source);
           }
           for (const publication of participant.audioTrackPublications.values()) {
             if (publication.track) attach(publication.track, participant);
