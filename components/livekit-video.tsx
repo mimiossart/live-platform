@@ -27,14 +27,14 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props
     const room = new Room({ adaptiveStream: true, dynacast: true });
     roomRef.current = room;
 
-    const attach = (track: RemoteTrack) => {
+    const attach = (track: RemoteTrack, participant?: RemoteParticipant) => {
       if (!containerRef.current) return;
       const element = track.attach();
       element.autoplay = true;
       if (element instanceof HTMLVideoElement) {
         element.className = "livekit-video";
         element.playsInline = true;
-        containerRef.current.replaceChildren(element);
+        const participantId=participant?.identity||"remote"; let slot=containerRef.current.querySelector(`[data-participant="${participantId}"]`) as HTMLDivElement|null; if(!slot){slot=document.createElement("div");slot.dataset.participant=participantId;slot.className="livekit-participant";containerRef.current.appendChild(slot)} slot.replaceChildren(element);
       } else {
         element.className = "livekit-audio";
         element.setAttribute("aria-hidden", "true");
@@ -81,7 +81,7 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props
             element.className = "livekit-video";
             element.autoplay = true;
             if (element instanceof HTMLVideoElement) element.playsInline = true;
-            containerRef.current.replaceChildren(element);
+            let slot=containerRef.current.querySelector(`[data-participant="${room.localParticipant.identity}"]`) as HTMLDivElement|null; if(!slot){slot=document.createElement("div");slot.dataset.participant=room.localParticipant.identity;slot.className="livekit-participant local";containerRef.current.appendChild(slot)} slot.replaceChildren(element);
           }
         }
       } catch (e) {
