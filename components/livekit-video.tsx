@@ -192,7 +192,7 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false, battle 
           element.playsInline = true;
           element.muted = true;
         }
-        const slot = getLocalSlot(room.localParticipant.identity);
+        const slot = containerRef.current?.querySelector(`[data-participant="${CSS.escape(room.localParticipant.identity)}"]`) as HTMLDivElement | null;
         if (slot) slot.appendChild(element);
       }
       setScreenSharing(enabled);
