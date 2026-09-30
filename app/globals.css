@@ -14,3 +14,5 @@
 @media(max-width:520px){.chat{left:6px;right:6px;bottom:56px;height:32vh;min-height:210px}.stage{height:58vh;min-height:400px}.live-gifts{margin-top:6px}.gift-grid{grid-template-columns:repeat(4,minmax(55px,1fr));max-height:30vh;overflow:auto}.gift-card{min-height:68px}.gift-icon{font-size:24px}}
 
 .live-overlay-image{position:absolute;right:16px;top:16px;z-index:7;max-width:32%;max-height:32%;object-fit:contain;pointer-events:none;border-radius:10px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.35))}.gift-summary{margin-top:10px;padding:10px 12px;border:1px solid #333;border-radius:12px;background:#111}.gift-summary div{margin-top:5px;color:#ddd}.live-gifts{width:100%;position:relative;z-index:30}.live-gifts .gift-grid{position:relative;z-index:31}
+
+.livekit-participant{position:relative}.livekit-screen{position:absolute!important;inset:0;width:100%!important;height:100%!important;z-index:4;object-fit:contain!important;background:#000;border-radius:inherit}.livekit-participant .livekit-video:not(.livekit-screen){position:relative;z-index:1}
