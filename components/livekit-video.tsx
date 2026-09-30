@@ -12,7 +12,8 @@ import {
 
 type Props = {
   liveId: string;
-  isOwner: boolean;\n  isGuest?: boolean;
+  isOwner: boolean;
+  isGuest?: boolean;
 };
 
 export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props) {
@@ -27,32 +28,73 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props
     const room = new Room({ adaptiveStream: true, dynacast: true });
     roomRef.current = room;
 
-    const attach = (track: RemoteTrack, participant?: RemoteParticipant) => {
-      if (!containerRef.current) return;
-      const element = track.attach();
-      element.autoplay = true;
-      if (element instanceof HTMLVideoElement) {
-        element.className = "livekit-video";
-        element.playsInline = true;
-        const participantId=participant?.identity||"remote"; let slot=containerRef.current.querySelector(`[data-participant="${participantId}"]`) as HTMLDivElement|null; if(!slot){slot=document.createElement("div");slot.dataset.participant=participantId;slot.className="livekit-participant";containerRef.current.appendChild(slot)} slot.replaceChildren(element);
+    const getSlot = (identity: string, local = false) => {
+      if (!containerRef.current) return null;
+      let slot = containerRef.current.querySelector(
+        `[data-participant="${CSS.escape(identity)}"]`,
+      ) as HTMLDivElement | null;
+      if (!slot) {
+        slot = document.createElement("div");
+        slot.dataset.participant = identity;
+        slot.className = `livekit-participant${local ? " local" : ""}`;
+        containerRef.current.appendChild(slot);
+      }
+      return slot;
+    };
+
+    const attach = (track: RemoteTrack, participant: RemoteParticipant) => {
+      if (track.kind === Track.Kind.Video) {
+        const element = track.attach();
+        if (element instanceof HTMLVideoElement) {
+          element.className = "livekit-video";
+          element.autoplay = true;
+          element.playsInline = true;
+        }
+        getSlot(participant.identity)?.replaceChildren(element);
       } else {
+        const element = track.attach();
         element.className = "livekit-audio";
         element.setAttribute("aria-hidden", "true");
-        containerRef.current.appendChild(element);
+        containerRef.current?.appendChild(element);
+      }
+    };
+
+    const removeTrack = (track: RemoteTrack, participant: RemoteParticipant) => {
+      track.detach().forEach((element) => element.remove());
+      if (track.kind === Track.Kind.Video) {
+        const slot = containerRef.current?.querySelector(
+          `[data-participant="${CSS.escape(participant.identity)}"]`,
+        );
+        if (slot) slot.remove();
       }
     };
 
     const onSubscribed = (
       track: RemoteTrack,
       _publication: RemoteTrackPublication,
-      _participant: RemoteParticipant,
-    ) => attach(track);
+      participant: RemoteParticipant,
+    ) => attach(track, participant);
+
+    const onUnsubscribed = (
+      track: RemoteTrack,
+      _publication: RemoteTrackPublication,
+      participant: RemoteParticipant,
+    ) => removeTrack(track, participant);
+
+    const onDisconnected = (participant: RemoteParticipant) => {
+      const slot = containerRef.current?.querySelector(
+        `[data-participant="${CSS.escape(participant.identity)}"]`,
+      );
+      slot?.remove();
+    };
 
     const onAudioStatus = () => {
       if (!isOwner) setNeedsAudio(!room.canPlaybackAudio);
     };
 
     room.on(RoomEvent.TrackSubscribed, onSubscribed);
+    room.on(RoomEvent.TrackUnsubscribed, onUnsubscribed);
+    room.on(RoomEvent.ParticipantDisconnected, onDisconnected);
     room.on(RoomEvent.AudioPlaybackStatusChanged, onAudioStatus);
     room.on(RoomEvent.Disconnected, () => setStatus("Vidéo déconnectée."));
 
@@ -76,12 +118,24 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props
         if (isOwner || isGuest) {
           await room.localParticipant.enableCameraAndMicrophone();
           const publication = room.localParticipant.getTrackPublication(Track.Source.Camera);
-          if (publication?.track && containerRef.current) {
+          if (publication?.track) {
             const element = publication.track.attach();
-            element.className = "livekit-video";
-            element.autoplay = true;
-            if (element instanceof HTMLVideoElement) element.playsInline = true;
-            let slot=containerRef.current.querySelector(`[data-participant="${room.localParticipant.identity}"]`) as HTMLDivElement|null; if(!slot){slot=document.createElement("div");slot.dataset.participant=room.localParticipant.identity;slot.className="livekit-participant local";containerRef.current.appendChild(slot)} slot.replaceChildren(element);
+            if (element instanceof HTMLVideoElement) {
+              element.className = "livekit-video";
+              element.autoplay = true;
+              element.playsInline = true;
+            }
+            getSlot(room.localParticipant.identity, true)?.replaceChildren(element);
+          }
+        }
+
+        // Render tracks that were already published before this client connected.
+        for (const participant of room.remoteParticipants.values()) {
+          for (const publication of participant.videoTrackPublications.values()) {
+            if (publication.track) attach(publication.track, participant);
+          }
+          for (const publication of participant.audioTrackPublications.values()) {
+            if (publication.track) attach(publication.track, participant);
           }
         }
       } catch (e) {
@@ -95,11 +149,13 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props
     return () => {
       cancelled = true;
       room.off(RoomEvent.TrackSubscribed, onSubscribed);
+      room.off(RoomEvent.TrackUnsubscribed, onUnsubscribed);
+      room.off(RoomEvent.ParticipantDisconnected, onDisconnected);
       room.off(RoomEvent.AudioPlaybackStatusChanged, onAudioStatus);
       room.disconnect();
       roomRef.current = null;
     };
-  }, [liveId, isOwner]);
+  }, [liveId, isOwner, isGuest]);
 
   async function enableAudio() {
     const room = roomRef.current;
@@ -122,7 +178,7 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props
           ▶ Appuie ici pour activer le son
         </button>
       )}
-      {isOwner && !error && (
+      {(isOwner || isGuest) && !error && (
         <div className="camera-hint">Caméra et micro actifs — autorise-les dans ton navigateur.</div>
       )}
     </div>
