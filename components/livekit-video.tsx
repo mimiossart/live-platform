@@ -273,4 +273,4 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
       )}
     </div>
   );
-}
+});
