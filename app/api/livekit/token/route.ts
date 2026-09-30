@@ -53,7 +53,6 @@ export async function POST(request: Request) {
     room: live.id,
     canSubscribe: true,
     canPublish: isOwner,
-    canPublishSources: isOwner ? ["camera", "microphone"] : [],
   });
 
   return NextResponse.json({
