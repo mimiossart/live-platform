@@ -14,7 +14,7 @@ import {
 type Props = {
   liveId: string;
   isOwner: boolean;
-  isGuest?: boolean;
+  isGuest?: boolean;\n  battle?: boolean;
 };
 
 export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props) {
@@ -160,7 +160,7 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props
       room.disconnect();
       roomRef.current = null;
     };
-  }, [liveId, isOwner, isGuest]);
+  }, [liveId, isOwner, isGuest, battle]);
 
   async function applyBackground(mode: string) {
     const processor = processorRef.current;
@@ -186,7 +186,7 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props
 
   return (
     <div className="video-live">
-      <div ref={containerRef} className={"livekit-container filter-"+filter} />
+      <div ref={containerRef} className={"livekit-container filter-"+filter+(battle?" battle-mode":"")} />
       {(isOwner || isGuest) && !error && <div className="live-effects">
         <button type="button" onClick={()=>setFilter("normal")}>Normal</button>
         <button type="button" onClick={()=>setFilter("warm")}>✨ Chaud</button>
