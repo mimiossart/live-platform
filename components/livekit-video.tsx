@@ -11,7 +11,9 @@ import {
   type RemoteTrackPublication,
 } from "livekit-client";
 
-export type LiveKitVideoHandle = { toggleCamera: () => Promise<boolean>; toggleMicrophone: () => Promise<boolean>; toggleScreenShare: () => Promise<boolean>; };\n\ntype Props = {
+export type LiveKitVideoHandle = { toggleCamera: () => Promise<boolean>; toggleMicrophone: () => Promise<boolean>; toggleScreenShare: () => Promise<boolean>; };
+
+type Props = {
   liveId: string;
   isOwner: boolean;
   isGuest?: boolean;
@@ -178,7 +180,11 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
     } catch (e) { setError(e instanceof Error ? e.message : "Impossible d’appliquer le fond."); }
   }
 
-  async function toggleCamera() { const room=roomRef.current; if(!room || (!isOwner&&!isGuest)) return false; const pub=room.localParticipant.getTrackPublication(Track.Source.Camera); const enabled=!(pub?.isMuted); await room.localParticipant.setCameraEnabled(!enabled); return !enabled; }\n\n  async function toggleMicrophone() { const room=roomRef.current; if(!room || (!isOwner&&!isGuest)) return false; const pub=room.localParticipant.getTrackPublication(Track.Source.Microphone); const enabled=!(pub?.isMuted); await room.localParticipant.setMicrophoneEnabled(!enabled); return !enabled; }\n\n  async function toggleScreenShare() {
+  async function toggleCamera() { const room=roomRef.current; if(!room || (!isOwner&&!isGuest)) return false; const pub=room.localParticipant.getTrackPublication(Track.Source.Camera); const enabled=!(pub?.isMuted); await room.localParticipant.setCameraEnabled(!enabled); return !enabled; }
+
+  async function toggleMicrophone() { const room=roomRef.current; if(!room || (!isOwner&&!isGuest)) return false; const pub=room.localParticipant.getTrackPublication(Track.Source.Microphone); const enabled=!(pub?.isMuted); await room.localParticipant.setMicrophoneEnabled(!enabled); return !enabled; }
+
+  async function toggleScreenShare() {
     const room = roomRef.current;
     if (!room || (!isOwner && !isGuest)) return;
     try {
@@ -201,7 +207,9 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
     }
   }
 
-  useImperativeHandle(ref, () => ({ toggleCamera, toggleMicrophone, toggleScreenShare }), [isOwner, isGuest, screenSharing]);\n\n  async function enableAudio() {
+  useImperativeHandle(ref, () => ({ toggleCamera, toggleMicrophone, toggleScreenShare }), [isOwner, isGuest, screenSharing]);
+
+  async function enableAudio() {
     const room = roomRef.current;
     if (!room) return;
     try {
