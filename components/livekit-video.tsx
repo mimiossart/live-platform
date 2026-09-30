@@ -20,13 +20,11 @@ export default function LiveKitVideo({ liveId, isOwner }: Props) {
   const roomRef = useRef<Room | null>(null);
   const [status, setStatus] = useState("Connexion vidéo…");
   const [error, setError] = useState("");
+  const [needsAudio, setNeedsAudio] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    const room = new Room({
-      adaptiveStream: true,
-      dynacast: true,
-    });
+    const room = new Room({ adaptiveStream: true, dynacast: true });
     roomRef.current = room;
 
     const attach = (track: RemoteTrack) => {
@@ -50,7 +48,12 @@ export default function LiveKitVideo({ liveId, isOwner }: Props) {
       _participant: RemoteParticipant,
     ) => attach(track);
 
+    const onAudioStatus = () => {
+      if (!isOwner) setNeedsAudio(!room.canPlaybackAudio);
+    };
+
     room.on(RoomEvent.TrackSubscribed, onSubscribed);
+    room.on(RoomEvent.AudioPlaybackStatusChanged, onAudioStatus);
     room.on(RoomEvent.Disconnected, () => setStatus("Vidéo déconnectée."));
 
     (async () => {
@@ -68,6 +71,7 @@ export default function LiveKitVideo({ liveId, isOwner }: Props) {
         if (cancelled) return;
 
         setStatus(isOwner ? "Caméra en direct" : "En direct");
+        if (!isOwner) setNeedsAudio(!room.canPlaybackAudio);
 
         if (isOwner) {
           await room.localParticipant.enableCameraAndMicrophone();
@@ -91,16 +95,33 @@ export default function LiveKitVideo({ liveId, isOwner }: Props) {
     return () => {
       cancelled = true;
       room.off(RoomEvent.TrackSubscribed, onSubscribed);
+      room.off(RoomEvent.AudioPlaybackStatusChanged, onAudioStatus);
       room.disconnect();
       roomRef.current = null;
     };
   }, [liveId, isOwner]);
+
+  async function enableAudio() {
+    const room = roomRef.current;
+    if (!room) return;
+    try {
+      await room.startAudio();
+      setNeedsAudio(!room.canPlaybackAudio);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Impossible d'activer le son.");
+    }
+  }
 
   return (
     <div className="video-live">
       <div ref={containerRef} className="livekit-container" />
       {!error && status && <div className="video-status">{status}</div>}
       {error && <div className="video-error">{error}</div>}
+      {needsAudio && !error && (
+        <button className="camera-hint" style={{ cursor: "pointer", border: 0 }} onClick={enableAudio}>
+          ▶ Appuie ici pour activer le son
+        </button>
+      )}
       {isOwner && !error && (
         <div className="camera-hint">Caméra et micro actifs — autorise-les dans ton navigateur.</div>
       )}
