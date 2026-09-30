@@ -9,3 +9,6 @@
 .gift-burst-text{font-size:15px;margin-top:5px}.gift-burst-text strong{color:#ff2d68}.gift-burst-coins{font-size:12px;color:#ffd166;margin-top:3px}
 @keyframes giftBurst{0%{opacity:0;transform:translateY(80px) scale(.65)}10%{opacity:1;transform:translateY(0) scale(1.05)}18%{transform:translateY(0) scale(1)}75%{opacity:1;transform:translateY(-15px) scale(1)}100%{opacity:0;transform:translateY(-90px) scale(.9)}}
 @keyframes giftIcon{0%{transform:scale(.2) rotate(-15deg)}60%{transform:scale(1.25) rotate(8deg)}100%{transform:scale(1) rotate(0)}}
+
+@media(max-width:850px){.live-layout{display:block}.chat{position:fixed;left:8px;right:8px;bottom:58px;height:34vh;min-height:220px;max-height:360px;z-index:40;border-radius:18px;background:rgba(8,8,8,.88);backdrop-filter:blur(14px);box-shadow:0 10px 35px rgba(0,0,0,.45)}.chat-head{padding:10px 14px}.messages{padding:10px 12px;max-height:none}.chat-form{padding:8px}.live-gifts{position:relative;z-index:35}.live-gifts .gift-grid{max-height:32vh;overflow:auto}.stage{height:62vh;min-height:430px}.shell{padding-bottom:80px}}
+@media(max-width:520px){.chat{left:6px;right:6px;bottom:56px;height:32vh;min-height:210px}.stage{height:58vh;min-height:400px}.live-gifts{margin-top:6px}.gift-grid{grid-template-columns:repeat(4,minmax(55px,1fr));max-height:30vh;overflow:auto}.gift-card{min-height:68px}.gift-icon{font-size:24px}}
