@@ -36,6 +36,8 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false, battle 
     const room = new Room({ adaptiveStream: true, dynacast: true });
     roomRef.current = room;
 
+    const getLocalSlot = (identity: string) => { if (!containerRef.current) return null; return containerRef.current.querySelector(`[data-participant="${CSS.escape(identity)}"]`) as HTMLDivElement | null; };
+
     const getSlot = (identity: string, local = false) => {
       if (!containerRef.current) return null;
       let slot = containerRef.current.querySelector(
@@ -180,8 +182,20 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false, battle 
     const room = roomRef.current;
     if (!room || (!isOwner && !isGuest)) return;
     try {
-      await room.localParticipant.setScreenShareEnabled(!screenSharing, { audio: true });
-      setScreenSharing(!screenSharing);
+      const enabled = !screenSharing;
+      const publication = await room.localParticipant.setScreenShareEnabled(enabled, { audio: true });
+      if (enabled && publication?.track) {
+        const element = publication.track.attach();
+        if (element instanceof HTMLVideoElement) {
+          element.className = "livekit-video livekit-screen";
+          element.autoplay = true;
+          element.playsInline = true;
+          element.muted = true;
+        }
+        const slot = getLocalSlot(room.localParticipant.identity);
+        if (slot) slot.appendChild(element);
+      }
+      setScreenSharing(enabled);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Impossible de partager la fenêtre.");
     }
