@@ -36,6 +36,8 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
   const [backgroundUrl, setBackgroundUrl] = useState("");
   const processorRef = useRef<any>(null);
   const [screenSharing, setScreenSharing] = useState(false);
+  const sceneSourcesRef = useRef<any[]>(sceneSources); const orientationRef = useRef(orientation);
+  useEffect(()=>{sceneSourcesRef.current=sceneSources;orientationRef.current=orientation},[sceneSources,orientation]);
   const compositeRef = useRef<{canvas:HTMLCanvasElement; track:LocalVideoTrack; stream:MediaStream; raf:number}|null>(null);
   const localCameraRef = useRef<HTMLVideoElement|null>(null);
   const localScreenRef = useRef<HTMLVideoElement|null>(null);
@@ -179,13 +181,13 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
 
   async function startComposite(room: Room) {
     if (!composite || compositeRef.current || !room.localParticipant) return;
-    const canvas=document.createElement("canvas"); canvas.width=orientation==="portrait"?720:1280; canvas.height=orientation==="portrait"?1280:720;
+    const canvas=document.createElement("canvas"); canvas.width=orientationRef.current==="portrait"?720:1280; canvas.height=orientationRef.current==="portrait"?1280:720;
     const ctx=canvas.getContext("2d"); if(!ctx) return;
     const stream=canvas.captureStream(30); const videoTrack=stream.getVideoTracks()[0]; if(!videoTrack) return;
     const track=new LocalVideoTrack(videoTrack, { width: canvas.width, height: canvas.height }, false);
     const camPub=room.localParticipant.getTrackPublication(Track.Source.Camera); const camTrack=camPub?.track;
     if(camTrack){ const el=camTrack.attach(); if(el instanceof HTMLVideoElement){el.muted=true;el.playsInline=true;await el.play().catch(()=>{});localCameraRef.current=el;} }
-    const draw=()=>{ctx.fillStyle="#050505";ctx.fillRect(0,0,canvas.width,canvas.height); const sources=sceneSources.length?sceneSources:[{type:"game",x:50,y:50,w:100,h:100}]; const game=sources.find((s:any)=>s.type==="game"); const camera=sources.find((s:any)=>s.type==="camera"); if(game&&localScreenRef.current&&localScreenRef.current.readyState>=2){ctx.drawImage(localScreenRef.current,0,0,canvas.width,canvas.height)} else if(game){ctx.fillStyle="#111";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle="#777";ctx.font="700 28px sans-serif";ctx.textAlign="center";ctx.fillText("🎮 Partage du jeu",canvas.width/2,canvas.height/2)} if(camera&&localCameraRef.current){const x=canvas.width*(camera.x/100-camera.w/200),y=canvas.height*(camera.y/100-camera.h/200),w=canvas.width*camera.w/100,h=canvas.height*camera.h/100;ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,18);ctx.clip();ctx.drawImage(localCameraRef.current,x,y,w,h);ctx.restore()} for(const s of sources.filter((x:any)=>x.type==="text")){ctx.fillStyle="#fff";ctx.font="700 34px sans-serif";ctx.fillText(s.label?.replace("🔤 ","")||"LiveWave",canvas.width*(s.x/100),canvas.height*(s.y/100))} compositeRef.current?.raf!==undefined&&requestAnimationFrame(draw)};
+    const draw=()=>{ctx.fillStyle="#050505";ctx.fillRect(0,0,canvas.width,canvas.height); const sources=sceneSourcesRef.current.length?sceneSourcesRef.current:[{type:"game",x:50,y:50,w:100,h:100}]; const game=sources.find((s:any)=>s.type==="game"); const camera=sources.find((s:any)=>s.type==="camera"); if(game&&localScreenRef.current&&localScreenRef.current.readyState>=2){ctx.drawImage(localScreenRef.current,0,0,canvas.width,canvas.height)} else if(game){ctx.fillStyle="#111";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle="#777";ctx.font="700 28px sans-serif";ctx.textAlign="center";ctx.fillText("🎮 Partage du jeu",canvas.width/2,canvas.height/2)} if(camera&&localCameraRef.current){const x=canvas.width*(camera.x/100-camera.w/200),y=canvas.height*(camera.y/100-camera.h/200),w=canvas.width*camera.w/100,h=canvas.height*camera.h/100;ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,18);ctx.clip();ctx.drawImage(localCameraRef.current,x,y,w,h);ctx.restore()} for(const s of sources.filter((x:any)=>x.type==="text")){ctx.fillStyle="#fff";ctx.font="700 34px sans-serif";ctx.fillText(s.label?.replace("🔤 ","")||"LiveWave",canvas.width*(s.x/100),canvas.height*(s.y/100))} compositeRef.current?.raf!==undefined&&requestAnimationFrame(draw)};
     compositeRef.current={canvas,track,stream,raf:0}; compositeRef.current.raf=requestAnimationFrame(draw);
     await room.localParticipant.publishTrack(track,{name:"livewave-composite",source:Track.Source.Camera,simulcast:false});
     if(camTrack) await room.localParticipant.unpublishTrack(camTrack,false);
