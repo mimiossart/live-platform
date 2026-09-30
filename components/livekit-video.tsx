@@ -176,7 +176,18 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false, battle 
     } catch (e) { setError(e instanceof Error ? e.message : "Impossible d’appliquer le fond."); }
   }
 
-  async function toggleScreenShare() {\n    const room = roomRef.current;\n    if (!room || (!isOwner && !isGuest)) return;\n    try {\n      await room.localParticipant.setScreenShareEnabled(!screenSharing, { audio: true });\n      setScreenSharing(!screenSharing);\n    } catch (e) {\n      setError(e instanceof Error ? e.message : "Impossible de partager la fenêtre.");\n    }\n  }\n\n  async function enableAudio() {
+  async function toggleScreenShare() {
+    const room = roomRef.current;
+    if (!room || (!isOwner && !isGuest)) return;
+    try {
+      await room.localParticipant.setScreenShareEnabled(!screenSharing, { audio: true });
+      setScreenSharing(!screenSharing);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Impossible de partager la fenêtre.");
+    }
+  }
+
+  async function enableAudio() {
     const room = roomRef.current;
     if (!room) return;
     try {
@@ -198,7 +209,8 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false, battle 
         <button type="button" onClick={()=>applyBackground("blur")}>🌫️ Flou</button>
         <button type="button" onClick={()=>applyBackground("none")}>Fond réel</button>
         <input value={backgroundUrl} onChange={e=>setBackgroundUrl(e.target.value)} placeholder="URL image de fond" />
-        <button type="button" onClick={()=>applyBackground("image")}>🖼️ Fond virtuel</button>\n        <button type="button" onClick={toggleScreenShare}>{screenSharing?"⏹️ Arrêter le partage":"🎮 Partager une fenêtre / jeu"}</button>
+        <button type="button" onClick={()=>applyBackground("image")}>🖼️ Fond virtuel</button>
+        <button type="button" onClick={toggleScreenShare}>{screenSharing?"⏹️ Arrêter le partage":"🎮 Partager une fenêtre / jeu"}</button>
         {background!=="none" && <span>Effet: {background}</span>}
       </div>}
       {!error && status && <div className="video-status">{status}</div>}
