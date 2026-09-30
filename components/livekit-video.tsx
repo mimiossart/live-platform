@@ -18,7 +18,7 @@ type Props = {
   battle?: boolean;
 };
 
-export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props) {
+export default function LiveKitVideo({ liveId, isOwner, isGuest = false, battle = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const roomRef = useRef<Room | null>(null);
   const [status, setStatus] = useState("Connexion vidéo…");
