@@ -30,12 +30,18 @@ export default function LiveKitVideo({ liveId, isOwner }: Props) {
     roomRef.current = room;
 
     const attach = (track: RemoteTrack) => {
-      if (!containerRef.current || track.kind !== Track.Kind.Video) return;
+      if (!containerRef.current) return;
       const element = track.attach();
-      element.className = "livekit-video";
       element.autoplay = true;
-      element.playsInline = true;
-      containerRef.current.replaceChildren(element);
+      if (element instanceof HTMLVideoElement) {
+        element.className = "livekit-video";
+        element.playsInline = true;
+        containerRef.current.replaceChildren(element);
+      } else {
+        element.className = "livekit-audio";
+        element.setAttribute("aria-hidden", "true");
+        containerRef.current.appendChild(element);
+      }
     };
 
     const onSubscribed = (
@@ -70,7 +76,7 @@ export default function LiveKitVideo({ liveId, isOwner }: Props) {
             const element = publication.track.attach();
             element.className = "livekit-video";
             element.autoplay = true;
-            element.playsInline = true;
+            if (element instanceof HTMLVideoElement) element.playsInline = true;
             containerRef.current.replaceChildren(element);
           }
         }
