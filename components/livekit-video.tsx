@@ -41,6 +41,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
   const compositeRef = useRef<{canvas:HTMLCanvasElement; track:LocalVideoTrack; stream:MediaStream; raf:number}|null>(null);
   const localCameraRef = useRef<HTMLVideoElement|null>(null);
   const localScreenRef = useRef<HTMLVideoElement|null>(null);
+  const mediaCacheRef = useRef<Map<string, HTMLImageElement|HTMLVideoElement>>(new Map());
 
   useEffect(() => {
     let cancelled = false;
@@ -178,13 +179,42 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
 
   async function startComposite(room: Room) {
     if (!composite || compositeRef.current || !room.localParticipant) return;
-    const canvas=document.createElement("canvas"); canvas.width=orientationRef.current==="portrait"?720:1280; canvas.height=orientationRef.current==="portrait"?1280:720;
+    const canvas=document.createElement("canvas");
+    canvas.width=orientationRef.current==="portrait"?720:1280;
+    canvas.height=orientationRef.current==="portrait"?1280:720;
     const ctx=canvas.getContext("2d"); if(!ctx) return;
     const stream=canvas.captureStream(30); const videoTrack=stream.getVideoTracks()[0]; if(!videoTrack) return;
     const track=new LocalVideoTrack(videoTrack, { width: canvas.width, height: canvas.height }, false);
     const camPub=room.localParticipant.getTrackPublication(Track.Source.Camera); const camTrack=camPub?.track;
     if(camTrack){ const el=camTrack.attach(); if(el instanceof HTMLVideoElement){el.muted=true;el.playsInline=true;await el.play().catch(()=>{});localCameraRef.current=el;} }
-    const draw=()=>{ctx.fillStyle="#050505";ctx.fillRect(0,0,canvas.width,canvas.height); const sources=sceneSourcesRef.current.length?sceneSourcesRef.current:[{type:"game",x:50,y:50,w:100,h:100}]; const game=sources.find((s:any)=>s.type==="game"); const camera=sources.find((s:any)=>s.type==="camera"); if(game&&localScreenRef.current&&localScreenRef.current.readyState>=2){ctx.drawImage(localScreenRef.current,0,0,canvas.width,canvas.height)} else if(game){ctx.fillStyle="#111";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle="#777";ctx.font="700 28px sans-serif";ctx.textAlign="center";ctx.fillText("🎮 Partage du jeu",canvas.width/2,canvas.height/2)} if(camera&&localCameraRef.current){const x=canvas.width*(camera.x/100-camera.w/200),y=canvas.height*(camera.y/100-camera.h/200),w=canvas.width*camera.w/100,h=canvas.height*camera.h/100;ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,18);ctx.clip();ctx.drawImage(localCameraRef.current,x,y,w,h);ctx.restore()} for(const s of sources.filter((x:any)=>x.type==="text")){ctx.fillStyle="#fff";ctx.font="700 34px sans-serif";ctx.fillText(s.label?.replace("🔤 ","")||"LiveWave",canvas.width*(s.x/100),canvas.height*(s.y/100))} compositeRef.current?.raf!==undefined&&requestAnimationFrame(draw)};
+
+    const getMedia=(source:any)=>{
+      if(!source.mediaUrl)return null;
+      const cached=mediaCacheRef.current.get(source.id);
+      if(cached)return cached;
+      if(source.type==="image"){
+        const img=new Image(); img.src=source.mediaUrl; mediaCacheRef.current.set(source.id,img); return img;
+      }
+      if(source.type==="video"){
+        const v=document.createElement("video"); v.src=source.mediaUrl; v.muted=true; v.loop=true; v.playsInline=true; v.autoplay=true; v.play().catch(()=>{}); mediaCacheRef.current.set(source.id,v); return v;
+      }
+      return null;
+    };
+    const draw=()=>{
+      const w=canvas.width,h=canvas.height;
+      ctx.fillStyle="#050505";ctx.fillRect(0,0,w,h);
+      const sources=sceneSourcesRef.current.length?sceneSourcesRef.current:[{type:"game",x:50,y:50,w:100,h:100}];
+      const game=sources.find((s:any)=>s.type==="game");
+      if(game&&localScreenRef.current&&localScreenRef.current.readyState>=2)ctx.drawImage(localScreenRef.current,0,0,w,h);
+      else if(game){ctx.fillStyle="#111";ctx.fillRect(0,0,w,h);ctx.fillStyle="#777";ctx.font="700 28px sans-serif";ctx.textAlign="center";ctx.fillText("🎮 Partage du jeu",w/2,h/2)}
+      for(const s of sources){
+        if(s.type==="camera"&&localCameraRef.current){const x=w*(s.x/100-s.w/200),y=h*(s.y/100-s.h/200),sw=w*s.w/100,sh=h*s.h/100;ctx.save();ctx.beginPath();ctx.roundRect(x,y,sw,sh,18);ctx.clip();ctx.drawImage(localCameraRef.current,x,y,sw,sh);ctx.restore()}
+        if((s.type==="image"||s.type==="video")&&s.mediaUrl){const m=getMedia(s);if(m&&((m instanceof HTMLImageElement&&m.complete)||(m instanceof HTMLVideoElement&&m.readyState>=2))){const x=w*(s.x/100-s.w/200),y=h*(s.y/100-s.h/200),sw=w*s.w/100,sh=h*s.h/100;ctx.drawImage(m,x,y,sw,sh)}}
+        if(s.type==="text"){ctx.fillStyle="#fff";ctx.font="700 34px sans-serif";ctx.textAlign="left";ctx.fillText(s.label?.replace("🔤 ","")||"LiveWave",w*s.x/100,h*s.y/100)}
+        if(s.type==="banner"){const x=w*(s.x/100-s.w/200),y=h*(s.y/100-s.h/200),sw=w*s.w/100,sh=h*s.h/100;ctx.fillStyle="rgba(255,45,104,.92)";ctx.fillRect(x,y,sw,sh);ctx.fillStyle="#fff";ctx.font="700 28px sans-serif";ctx.textAlign="center";ctx.fillText(s.label?.replace("📢 ","")||"LIVE",x+sw/2,y+sh/2+10)}
+      }
+      if(compositeRef.current) compositeRef.current.raf=requestAnimationFrame(draw);
+    };
     compositeRef.current={canvas,track,stream,raf:0}; compositeRef.current.raf=requestAnimationFrame(draw);
     await room.localParticipant.publishTrack(track,{name:"livewave-composite",source:Track.Source.Camera,simulcast:false});
     if(camTrack) await room.localParticipant.unpublishTrack(camTrack,false);
@@ -230,6 +260,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
     }
   }
 
+  useEffect(()=>{const c=compositeRef.current?.canvas;if(c){c.width=orientationRef.current==="portrait"?720:1280;c.height=orientationRef.current==="portrait"?1280:720;}},[orientation]);
   useImperativeHandle(ref, () => ({ toggleCamera, toggleMicrophone, toggleScreenShare }), [isOwner, isGuest, screenSharing]);
 
   useEffect(()=>{ const p=roomRef.current?.localParticipant; const pub=p?.getTrackPublication(Track.Source.ScreenShare); const t=pub?.track; if(t){const el=t.attach(); if(el instanceof HTMLVideoElement){el.muted=true;el.playsInline=true;el.play().catch(()=>{});localScreenRef.current=el;}} return ()=>{localScreenRef.current?.remove();localScreenRef.current=null}; },[screenSharing]);
