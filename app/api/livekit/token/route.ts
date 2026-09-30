@@ -85,7 +85,7 @@ export async function POST(request: Request) {
     roomJoin: true,
     room: battleRoom || live.id,
     canSubscribe: true,
-    canPublish: battleParticipant || isOwner || isGuest,
+    canPublish: battleRoom ? battleParticipant : (isOwner || isGuest),
   });
 
   return NextResponse.json({
