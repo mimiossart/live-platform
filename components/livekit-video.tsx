@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { BackgroundProcessor, supportsBackgroundProcessors } from "@livekit/track-processors";
 import {
   Room,
   RoomEvent,
