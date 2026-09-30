@@ -10,6 +10,7 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => null);
   const liveId = typeof body?.liveId === "string" ? body.liveId : "";
+  const matchId = typeof body?.matchId === "string" ? body.matchId : "";
 
   if (!liveId) {
     return NextResponse.json({ error: "liveId requis." }, { status: 400 });
@@ -23,6 +24,27 @@ export async function POST(request: Request) {
 
   if (error || !live || live.status !== "live") {
     return NextResponse.json({ error: "Live indisponible." }, { status: 404 });
+  }
+
+  let battleRoom = "";
+  let battleParticipant = false;
+  if (matchId) {
+    const { data: match } = await supabase
+      .from("live_matches")
+      .select("id,live_id,opponent_live_id,battle_room_id,challenger_id,opponent_id,status")
+      .eq("id", matchId)
+      .in("status", ["pending", "active"])
+      .maybeSingle();
+
+    const participant = Boolean(user && match && (user.id === match.challenger_id || user.id === match.opponent_id));
+    const liveBelongsToMatch = Boolean(match && (match.live_id === liveId || match.opponent_live_id === liveId));
+
+    if (!match || !liveBelongsToMatch || (match.status === "active" && !participant && !user)) {
+      return NextResponse.json({ error: "Match indisponible." }, { status: 404 });
+    }
+
+    battleRoom = match.battle_room_id || match.id;
+    battleParticipant = participant;
   }
 
   const apiKey = process.env.LIVEKIT_API_KEY;
@@ -61,9 +83,9 @@ export async function POST(request: Request) {
 
   token.addGrant({
     roomJoin: true,
-    room: live.id,
+    room: battleRoom || live.id,
     canSubscribe: true,
-    canPublish: isOwner || isGuest,
+    canPublish: battleParticipant || isOwner || isGuest,
   });
 
   return NextResponse.json({
@@ -71,5 +93,6 @@ export async function POST(request: Request) {
     participantToken: await token.toJwt(),
     isOwner,
     isGuest,
+    battleRoom: battleRoom || live.id,
   });
 }
