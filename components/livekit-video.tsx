@@ -16,9 +16,10 @@ type Props = {
   isOwner: boolean;
   isGuest?: boolean;
   battle?: boolean;
+  matchId?: string | null;
 };
 
-export default function LiveKitVideo({ liveId, isOwner, isGuest = false, battle = false }: Props) {
+export default function LiveKitVideo({ liveId, isOwner, isGuest = false, battle = false, matchId = null }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const roomRef = useRef<Room | null>(null);
   const [status, setStatus] = useState("Connexion vidéo…");
@@ -109,7 +110,7 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false, battle 
         const response = await fetch("/api/livekit/token", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ liveId }),
+          body: JSON.stringify({ liveId, matchId: battle ? matchId : null }),
         });
 
         const data = await response.json();
@@ -161,7 +162,7 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false, battle 
       room.disconnect();
       roomRef.current = null;
     };
-  }, [liveId, isOwner, isGuest, battle]);
+  }, [liveId, isOwner, isGuest, battle, matchId]);
 
   async function applyBackground(mode: string) {
     const processor = processorRef.current;
