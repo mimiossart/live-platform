@@ -47,8 +47,6 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
     const room = new Room({ adaptiveStream: true, dynacast: true });
     roomRef.current = room;
 
-    const getLocalSlot = (identity: string) => { if (!containerRef.current) return null; return containerRef.current.querySelector(`[data-participant="${CSS.escape(identity)}"]`) as HTMLDivElement | null; };
-
     const getSlot = (identity: string, local = false) => {
       if (!containerRef.current) return null;
       let slot = containerRef.current.querySelector(
@@ -151,7 +149,6 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
           if (composite && isOwner) await startComposite(room);
         }
 
-        // Render tracks that were already published before this client connected.
         for (const participant of room.remoteParticipants.values()) {
           for (const publication of participant.videoTrackPublications.values()) {
             if (publication.track) attach(publication.track, participant, publication.source);
@@ -208,9 +205,9 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
 
   async function toggleMicrophone() { const room=roomRef.current; if(!room || (!isOwner&&!isGuest)) return false; const pub=room.localParticipant.getTrackPublication(Track.Source.Microphone); const enabled=!(pub?.isMuted); await room.localParticipant.setMicrophoneEnabled(!enabled); return !enabled; }
 
-  async function toggleScreenShare() {
+  async function toggleScreenShare(): Promise<boolean> {
     const room = roomRef.current;
-    if (!room || (!isOwner && !isGuest)) return;
+    if (!room || (!isOwner && !isGuest)) return false;
     try {
       const enabled = !screenSharing;
       const publication = await room.localParticipant.setScreenShareEnabled(enabled, { audio: true });
@@ -226,8 +223,10 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
         if (slot) slot.appendChild(element);
       }
       setScreenSharing(enabled);
+      return enabled;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Impossible de partager la fenêtre.");
+      return screenSharing;
     }
   }
 
@@ -274,6 +273,5 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
     </div>
   );
 });
-
 
 export default LiveKitVideo;
