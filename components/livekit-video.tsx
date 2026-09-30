@@ -22,7 +22,11 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props
   const roomRef = useRef<Room | null>(null);
   const [status, setStatus] = useState("Connexion vidéo…");
   const [error, setError] = useState("");
-  const [needsAudio, setNeedsAudio] = useState(false);\n  const [filter, setFilter] = useState("normal");\n  const [background, setBackground] = useState("none");\n  const [backgroundUrl, setBackgroundUrl] = useState("");\n  const processorRef = useRef<any>(null);
+  const [needsAudio, setNeedsAudio] = useState(false);
+  const [filter, setFilter] = useState("normal");
+  const [background, setBackground] = useState("none");
+  const [backgroundUrl, setBackgroundUrl] = useState("");
+  const processorRef = useRef<any>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -158,7 +162,18 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props
     };
   }, [liveId, isOwner, isGuest]);
 
-  async function applyBackground(mode: string) {\n    const processor = processorRef.current;\n    if (!processor) { setError("Les effets de fond ne sont pas disponibles sur ce navigateur."); return; }\n    try {\n      if (mode === "blur") await processor.switchTo({ mode: "background-blur", blurRadius: 12 });\n      else if (mode === "image") { if (!backgroundUrl.trim()) { setError("Ajoute l’URL d’une image de fond."); return; } await processor.switchTo({ mode: "virtual-background", imagePath: backgroundUrl.trim() }); }\n      else await processor.switchTo({ mode: "disabled" });\n      setBackground(mode); setError("");\n    } catch (e) { setError(e instanceof Error ? e.message : "Impossible d’appliquer le fond."); }\n  }\n\n  async function enableAudio() {
+  async function applyBackground(mode: string) {
+    const processor = processorRef.current;
+    if (!processor) { setError("Les effets de fond ne sont pas disponibles sur ce navigateur."); return; }
+    try {
+      if (mode === "blur") await processor.switchTo({ mode: "background-blur", blurRadius: 12 });
+      else if (mode === "image") { if (!backgroundUrl.trim()) { setError("Ajoute l’URL d’une image de fond."); return; } await processor.switchTo({ mode: "virtual-background", imagePath: backgroundUrl.trim() }); }
+      else await processor.switchTo({ mode: "disabled" });
+      setBackground(mode); setError("");
+    } catch (e) { setError(e instanceof Error ? e.message : "Impossible d’appliquer le fond."); }
+  }
+
+  async function enableAudio() {
     const room = roomRef.current;
     if (!room) return;
     try {
@@ -171,7 +186,18 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props
 
   return (
     <div className="video-live">
-      <div ref={containerRef} className={"livekit-container filter-"+filter} />\n      {(isOwner || isGuest) && !error && <div className="live-effects">\n        <button type="button" onClick={()=>setFilter("normal")}>Normal</button>\n        <button type="button" onClick={()=>setFilter("warm")}>✨ Chaud</button>\n        <button type="button" onClick={()=>setFilter("mono")}>⚫ N&B</button>\n        <button type="button" onClick={()=>setFilter("vivid")}>🌈 Vif</button>\n        <button type="button" onClick={()=>applyBackground("blur")}>🌫️ Flou</button>\n        <button type="button" onClick={()=>applyBackground("none")}>Fond réel</button>\n        <input value={backgroundUrl} onChange={e=>setBackgroundUrl(e.target.value)} placeholder="URL image de fond" />\n        <button type="button" onClick={()=>applyBackground("image")}>🖼️ Fond virtuel</button>\n        {background!=="none" && <span>Effet: {background}</span>}\n      </div>}
+      <div ref={containerRef} className={"livekit-container filter-"+filter} />
+      {(isOwner || isGuest) && !error && <div className="live-effects">
+        <button type="button" onClick={()=>setFilter("normal")}>Normal</button>
+        <button type="button" onClick={()=>setFilter("warm")}>✨ Chaud</button>
+        <button type="button" onClick={()=>setFilter("mono")}>⚫ N&B</button>
+        <button type="button" onClick={()=>setFilter("vivid")}>🌈 Vif</button>
+        <button type="button" onClick={()=>applyBackground("blur")}>🌫️ Flou</button>
+        <button type="button" onClick={()=>applyBackground("none")}>Fond réel</button>
+        <input value={backgroundUrl} onChange={e=>setBackgroundUrl(e.target.value)} placeholder="URL image de fond" />
+        <button type="button" onClick={()=>applyBackground("image")}>🖼️ Fond virtuel</button>
+        {background!=="none" && <span>Effet: {background}</span>}
+      </div>}
       {!error && status && <div className="video-status">{status}</div>}
       {error && <div className="video-error">{error}</div>}
       {needsAudio && !error && (
