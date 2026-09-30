@@ -143,7 +143,7 @@ export default function LiveKitVideo({ liveId, isOwner, isGuest = false, battle 
             if (publication.track) attach(publication.track, participant, publication.source);
           }
           for (const publication of participant.audioTrackPublications.values()) {
-            if (publication.track) attach(publication.track, participant);
+            if (publication.track) attach(publication.track, participant, publication.source);
           }
         }
       } catch (e) {
