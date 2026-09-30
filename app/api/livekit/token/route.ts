@@ -8,10 +8,6 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
-  }
-
   const body = await request.json().catch(() => null);
   const liveId = typeof body?.liveId === "string" ? body.liveId : "";
 
@@ -40,11 +36,12 @@ export async function POST(request: Request) {
     );
   }
 
-  const isOwner = live.user_id === user.id;
+  const isOwner = Boolean(user && live.user_id === user.id);
+  const identity = user?.id ?? `viewer-${crypto.randomUUID()}`;
 
   const token = new AccessToken(apiKey, apiSecret, {
-    identity: user.id,
-    name: user.id,
+    identity,
+    name: user?.id ?? "Visiteur",
     ttl: "10m",
   });
 
