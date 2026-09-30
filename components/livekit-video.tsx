@@ -14,7 +14,8 @@ import {
 type Props = {
   liveId: string;
   isOwner: boolean;
-  isGuest?: boolean;\n  battle?: boolean;
+  isGuest?: boolean;
+  battle?: boolean;
 };
 
 export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props) {
