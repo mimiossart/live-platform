@@ -12,10 +12,10 @@ import {
 
 type Props = {
   liveId: string;
-  isOwner: boolean;
+  isOwner: boolean;\n  isGuest?: boolean;
 };
 
-export default function LiveKitVideo({ liveId, isOwner }: Props) {
+export default function LiveKitVideo({ liveId, isOwner, isGuest = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const roomRef = useRef<Room | null>(null);
   const [status, setStatus] = useState("Connexion vidéo…");
@@ -70,10 +70,10 @@ export default function LiveKitVideo({ liveId, isOwner }: Props) {
         await room.connect(data.serverUrl, data.participantToken);
         if (cancelled) return;
 
-        setStatus(isOwner ? "Caméra en direct" : "En direct");
+        setStatus(isOwner || isGuest ? "Caméra en direct" : "En direct");
         if (!isOwner) setNeedsAudio(!room.canPlaybackAudio);
 
-        if (isOwner) {
+        if (isOwner || isGuest) {
           await room.localParticipant.enableCameraAndMicrophone();
           const publication = room.localParticipant.getTrackPublication(Track.Source.Camera);
           if (publication?.track && containerRef.current) {
