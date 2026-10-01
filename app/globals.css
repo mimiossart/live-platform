@@ -262,3 +262,26 @@
     object-fit:contain!important;
   }
 }
+
+/* Keep spectator controls tappable above the video/overlay layers. */
+.live-layout>.stage .live-fullscreen-button{
+  pointer-events:auto!important;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  z-index:1000!important;
+}
+.live-layout>.stage>.overlay,
+.live-layout>.stage .livekit-container,
+.live-layout>.stage .livekit-participant,
+.live-layout>.stage .livekit-video{
+  pointer-events:none;
+}
+@media(max-width:700px){
+  .live-layout>.stage .live-fullscreen-button{
+    top:58px;
+    right:10px;
+    width:44px;
+    height:44px;
+    z-index:1000!important;
+  }
+}
