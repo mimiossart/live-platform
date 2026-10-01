@@ -207,7 +207,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
         await room.connect(data.serverUrl, data.participantToken);
         if (cancelled) return;
 
-        setStatus(isOwner || isGuest ? "Caméra en direct" : "En direct");
+        setStatus(isOwner || isGuest ? "Studio prêt" : "En direct");
         if (!isOwner) setNeedsAudio(!room.canPlaybackAudio);
 
         if (isOwner || isGuest) {
