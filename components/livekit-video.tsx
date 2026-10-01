@@ -244,6 +244,13 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
     };
   }, [liveId, isOwner, isGuest, battle, matchId, composite]);
 
+  function getLocalPreviewSlot() {
+    if (!containerRef.current || !roomRef.current?.localParticipant) return null;
+    return containerRef.current.querySelector(
+      `[data-participant="${CSS.escape(roomRef.current.localParticipant.identity)}"]`,
+    ) as HTMLDivElement | null;
+  }
+
   async function startComposite(room: Room) {
     if (!composite || compositeRef.current || !room.localParticipant) return;
     const canvas=document.createElement("canvas");
@@ -303,12 +310,29 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
       if(compositeRef.current) compositeRef.current.raf=requestAnimationFrame(draw);
     };
     compositeRef.current={canvas,track,stream,raf:0}; compositeRef.current.raf=requestAnimationFrame(draw);
-    await room.localParticipant.publishTrack(track,{
+    const compositePublication = await room.localParticipant.publishTrack(track,{
       name:"livewave-composite",
       source:Track.Source.Camera,
       simulcast:false,
       videoEncoding:{maxBitrate:5400000,maxFramerate:30},
     });
+
+    // Show the final composited stream in the Studio itself. Previously the
+    // local slot kept the raw camera, which made the game capture appear
+    // missing even though the screen track was being captured.
+    if (compositePublication.track) {
+      const preview = compositePublication.track.attach();
+      if (preview instanceof HTMLVideoElement) {
+        preview.className = "livekit-video";
+        preview.autoplay = true;
+        preview.playsInline = true;
+        preview.muted = true;
+        await preview.play().catch(() => {});
+      }
+      const slot = getLocalPreviewSlot();
+      slot?.replaceChildren(preview);
+    }
+
     if(camTrack) await room.localParticipant.unpublishTrack(camTrack,false);
   }
 
@@ -332,7 +356,8 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
     if (!room || (!isOwner && !isGuest)) return false;
     try {
       const enabled = !screenSharing;
-      const publication = await room.localParticipant.setScreenShareEnabled(enabled, { audio: true });
+      await room.localParticipant.setScreenShareEnabled(enabled, { audio: true });
+      const publication = room.localParticipant.getTrackPublication(Track.Source.ScreenShare);
       if (enabled && publication?.track) {
         const element = publication.track.attach();
         if (element instanceof HTMLVideoElement) {
