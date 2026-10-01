@@ -300,3 +300,45 @@
     isolation:isolate;
   }
 }
+
+/* Mobile LIVE: keep the comment composer above the bottom navigation. */
+@media(max-width:700px){
+  .live-layout>.chat{
+    position:fixed!important;
+    left:10px!important;
+    right:78px!important;
+    bottom:0!important;
+    height:30vh!important;
+    min-height:150px!important;
+    max-height:270px!important;
+    z-index:90!important;
+    pointer-events:auto!important;
+  }
+  .live-layout>.chat .chat-form{
+    position:sticky;
+    bottom:0;
+    z-index:95;
+    padding-bottom:max(8px, env(safe-area-inset-bottom))!important;
+    pointer-events:auto!important;
+  }
+  .live-layout>.chat .chat-form input,
+  .live-layout>.chat .chat-form button{
+    pointer-events:auto!important;
+  }
+  .footer-nav{
+    display:none!important;
+    pointer-events:none!important;
+  }
+  .mobile-live-actions{
+    bottom:110px!important;
+    z-index:100!important;
+  }
+}
+
+/* iOS: use the actual video element for native fullscreen. */
+.live-layout>.stage video:fullscreen{
+  width:100vw!important;
+  height:100vh!important;
+  object-fit:contain!important;
+  background:#000!important;
+}
