@@ -10,3 +10,17 @@
 @keyframes studioGiftIn{0%{opacity:0;transform:translateY(120px) scale(.45)}9%{opacity:1;transform:translateY(0) scale(1.08)}18%{transform:translateY(-8px) scale(1)}78%{opacity:1;transform:translateY(-28px) scale(1)}100%{opacity:0;transform:translateY(-150px) scale(.82)}}
 @keyframes studioGiftIcon{0%{transform:scale(.15) rotate(-18deg);filter:drop-shadow(0 0 0 transparent)}55%{transform:scale(1.3) rotate(8deg);filter:drop-shadow(0 0 28px rgba(255,45,104,.95))}100%{transform:scale(1) rotate(0);filter:drop-shadow(0 0 18px rgba(255,45,104,.75))}}
 @media(max-width:700px){.studio-gift-icon{width:88px;height:88px;font-size:64px}.studio-gift-text{font-size:12px}}
+
+/* TikTok LIVE Studio engagement UI */
+.studio-live-metrics{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto;margin-right:12px}
+.studio-live-metrics>span{background:#17171b;border:1px solid #2d2d33;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900;color:#ddd}
+.studio-share-live,.studio-panel-share{background:#ff2d68!important;color:#fff!important;border:0!important;font-weight:900!important}
+.studio-share-live{border-radius:999px;padding:8px 12px;cursor:pointer}
+.studio-share-live:disabled,.studio-panel-share:disabled{opacity:.55;cursor:wait}
+.studio-like-counter{position:absolute;right:12px;top:12px;z-index:520;background:rgba(0,0,0,.68);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900;color:#ff6b93}
+.studio-like-burst-layer{position:absolute;inset:0;z-index:510;pointer-events:none;overflow:hidden}
+.studio-like-heart{position:absolute;font-size:34px;color:#ff2d68;text-shadow:0 0 18px rgba(255,45,104,.9);animation:studioLikeFloat 1.2s ease-out forwards;transform:translate(-50%,-50%)}
+@keyframes studioLikeFloat{0%{opacity:0;transform:translate(-50%,-10%) scale(.4) rotate(-12deg)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}100%{opacity:0;transform:translate(calc(-50% + 18px),-190%) scale(.75) rotate(12deg)}}
+.studio-like-dock{color:#ff6b93!important}
+@media(max-width:1100px){.studio-live-metrics{margin:8px 0 0;width:100%}}
+@media(max-width:700px){.studio-live-metrics{gap:5px}.studio-live-metrics>span{font-size:10px;padding:6px 8px}.studio-share-live{font-size:10px;padding:7px 9px}.studio-like-counter{top:8px;right:8px}}
