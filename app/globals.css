@@ -411,3 +411,59 @@
   .spectator-expanded{z-index:450!important;}
   .spectator-expanded .live-coin-balance{top:12px;left:12px;z-index:600;}
 }
+
+/* TikTok-style gift animation */
+.gift-burst-layer{z-index:300!important;pointer-events:none;overflow:hidden!important;justify-content:flex-end!important;padding-bottom:120px!important}
+.gift-burst{
+  min-width:0!important;
+  width:min(360px,82%)!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  animation:giftTikTokIn 5.2s cubic-bezier(.2,.8,.2,1) forwards!important;
+}
+.gift-burst-icon{
+  width:108px;height:108px;margin:0 auto;
+  display:grid;place-items:center;
+  font-size:78px!important;line-height:1;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.3),rgba(255,45,104,.08) 45%,transparent 70%);
+  filter:drop-shadow(0 0 18px rgba(255,45,104,.75));
+  animation:giftTikTokIcon .9s cubic-bezier(.16,1.4,.3,1) both!important;
+}
+.gift-burst-text{
+  display:inline-block;
+  margin-top:4px!important;
+  padding:7px 14px;
+  border-radius:999px;
+  background:rgba(0,0,0,.72);
+  border:1px solid rgba(255,255,255,.18);
+  font-size:14px!important;
+  text-shadow:0 2px 8px #000;
+}
+.gift-burst-coins{
+  margin-top:5px!important;
+  font-size:12px!important;
+  font-weight:900;
+  color:#ffd166!important;
+  text-shadow:0 2px 8px #000;
+}
+@keyframes giftTikTokIn{
+  0%{opacity:0;transform:translateY(120px) scale(.45)}
+  9%{opacity:1;transform:translateY(0) scale(1.08)}
+  18%{transform:translateY(-8px) scale(1)}
+  78%{opacity:1;transform:translateY(-28px) scale(1)}
+  100%{opacity:0;transform:translateY(-150px) scale(.82)}
+}
+@keyframes giftTikTokIcon{
+  0%{transform:scale(.15) rotate(-18deg);filter:drop-shadow(0 0 0 transparent)}
+  55%{transform:scale(1.3) rotate(8deg);filter:drop-shadow(0 0 28px rgba(255,45,104,.95))}
+  100%{transform:scale(1) rotate(0);filter:drop-shadow(0 0 18px rgba(255,45,104,.75))}
+}
+@media(max-width:700px){
+  .gift-burst-layer{padding-bottom:180px!important}
+  .gift-burst{width:min(300px,78%)!important}
+  .gift-burst-icon{width:88px;height:88px;font-size:64px!important}
+  .gift-burst-text{font-size:12px!important}
+}
