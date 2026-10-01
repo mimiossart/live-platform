@@ -397,7 +397,17 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
       element.autoplay = true;
       element.playsInline = true;
       element.muted = true;
-      element.style.display = "none";
+      // Keep the video element decodable: display:none can cause some browsers
+      // to stop updating frames, which makes canvas.drawImage() capture black.
+      // Park it off-screen instead of hiding it with display:none.
+      element.style.position = "fixed";
+      element.style.left = "-10000px";
+      element.style.top = "0";
+      element.style.width = "1280px";
+      element.style.height = "720px";
+      element.style.opacity = "0";
+      element.style.pointerEvents = "none";
+      element.style.zIndex = "-1";
       localScreenRef.current = element;
 
       await new Promise<void>((resolve) => {
