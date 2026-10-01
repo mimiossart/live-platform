@@ -13,9 +13,17 @@ export default function LiveRoom(){const params=useParams<{id:string}>(),router=
       return;
     }
     if(stage.requestFullscreen){
-      await stage.requestFullscreen();
+      await stage.requestFullscreen({navigationUI:"hide"});
+      return;
     }
-  }catch{}
+    const video=stage.querySelector("video") as (HTMLVideoElement & {webkitEnterFullscreen?:()=>void})|null;
+    if(video?.webkitEnterFullscreen){
+      video.webkitEnterFullscreen();
+    }
+  }catch{
+    const video=stage.querySelector("video") as (HTMLVideoElement & {webkitEnterFullscreen?:()=>void})|null;
+    if(video?.webkitEnterFullscreen) video.webkitEnterFullscreen();
+  }
 }
 function tapLike(e:React.MouseEvent<HTMLDivElement>){
  if(!userId){router.push("/login");return}
