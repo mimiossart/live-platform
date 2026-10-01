@@ -64,7 +64,7 @@ return <main className="studio-app">
         <input value={live.title} onChange={e=>setLive((v:any)=>({...v,title:e.target.value}))} onBlur={async()=>{await supabase.from("lives").update({title:live.title}).eq("id",id).eq("user_id",uid)}} aria-label="Titre du live"/>
         <span className="studio-category">🎮 {liveCategory}</span>
       </div>
-      <div className="studio-format-tabs">
+      <div className="studio-live-metrics"><span>👥 {Number(live.viewer_count||0).toLocaleString("fr-FR")}</span><span>❤️ {likeCount.toLocaleString("fr-FR")}</span><button className="studio-share-live" onClick={shareToFollowing} disabled={shareBusy}>{shareBusy?"Partage…":"📣 Partager à mes abonnements"}</button></div><div className="studio-format-tabs">
         <button className={orientation==="portrait"?"active":""} onClick={()=>setOrientation("portrait")}>▯ Vertical 9:16</button>
         <button className={orientation==="landscape"?"active":""} onClick={()=>setOrientation("landscape")}>▭ Horizontal 16:9</button>
       </div>
@@ -100,7 +100,7 @@ return <main className="studio-app">
         <button onClick={async()=>{const on=await videoRef.current?.toggleScreenShare();if(on!==undefined){setShare(on);if(on&&!sceneSources.some(s=>s.type==="game"))addSceneSource("game")}}}>{share?"Arrêter":"Partager"}</button>
       </div>
       <div className="dock-meter"><span>Micro</span><i><b style={{width:micGain+"%"}}/></i></div>
-      <button className="dock-action" onClick={()=>setPanel("gifts")}>🎁 <span>Cadeaux</span></button>
+      <button className="dock-action studio-like-dock">❤️ <span>{likeCount.toLocaleString("fr-FR")} Likes</span></button><button className="dock-action" onClick={()=>setPanel("gifts")}>🎁 <span>Cadeaux</span></button>
       <button className="dock-action" onClick={()=>setPanel("match")}>⚔️ <span>Match</span></button>
       <button className="dock-action" onClick={()=>window.open("/live/"+id+"/chat","livewave-chat","width=380,height=700,resizable=yes")}>💬 <span>Chat</span></button>
     </div>
@@ -116,7 +116,7 @@ return <main className="studio-app">
     <section className="studio-live-summary">
       <div className="summary-title"><b>LIVE</b><span>{elapsed}</span></div>
       <div className="summary-stat"><span>🔴 Statut</span><strong>En direct</strong></div>
-      <div className="summary-stat"><span>🎮 Catégorie</span><strong>{liveCategory}</strong></div>
+      <div className="summary-stat"><span>👥 Spectateurs</span><strong>{Number(live.viewer_count||0).toLocaleString("fr-FR")}</strong></div><div className="summary-stat"><span>❤️ Likes</span><strong>{likeCount.toLocaleString("fr-FR")}</strong></div><div className="summary-stat"><span>🎮 Catégorie</span><strong>{liveCategory}</strong></div>
       <div className="summary-stat"><span>📐 Format</span><strong>{orientation==="portrait"?"9:16":"16:9"}</strong></div>
     </section>
     <div className="rightbar-actions">
