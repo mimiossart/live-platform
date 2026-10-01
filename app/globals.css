@@ -285,3 +285,18 @@
     z-index:1000!important;
   }
 }
+
+/* Mobile fullscreen control must sit above every LIVE layer. */
+@media(max-width:700px){
+  .live-layout>.stage .live-fullscreen-button{
+    position:fixed!important;
+    top:60px!important;
+    right:10px!important;
+    z-index:2147483647!important;
+    pointer-events:auto!important;
+    touch-action:none!important;
+    user-select:none;
+    -webkit-user-select:none;
+    isolation:isolate;
+  }
+}
