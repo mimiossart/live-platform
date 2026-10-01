@@ -31,3 +31,8 @@
 .source-category{display:flex;flex-direction:column;gap:2px;margin:14px 0 8px}.source-category b{font-size:12px}.source-category small{color:#8f8f99;font-size:10px}
 .studio-source-row{transition:background .15s ease,border-color .15s ease}.studio-source-row.active{background:rgba(255,45,104,.09);border-color:rgba(255,45,104,.42)}
 .studio-add-source{font-weight:900}.studio-source-item{min-width:0}.studio-source-item span:nth-child(2){min-width:0}.studio-source-item b,.studio-source-item small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Source selection must never hide the real video/composite underneath. */
+.scene-source.capture-source{background:transparent!important;border:1px solid transparent;box-sizing:border-box;pointer-events:auto}
+.scene-source.capture-source.selected{background:transparent!important;border:2px solid #ff2d68;box-shadow:0 0 0 1px rgba(255,45,104,.18),inset 0 0 0 1px rgba(255,45,104,.08)}
+.scene-source.capture-source img,.scene-source.capture-source video{display:none!important}
