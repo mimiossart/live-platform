@@ -372,31 +372,53 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
     if (!room || (!isOwner && !isGuest)) return false;
     try {
       const enabled = !screenSharing;
-      await room.localParticipant.setScreenShareEnabled(enabled, { audio: true });
-      const publication = room.localParticipant.getTrackPublication(Track.Source.ScreenShare);
-      if (enabled && publication?.track) {
-        const element = publication.track.attach();
-        if (element instanceof HTMLVideoElement) {
-          element.className = "livekit-video livekit-screen";
-          element.autoplay = true;
-          element.playsInline = true;
-          element.muted = true;
-          element.onloadedmetadata = () => {
-            localScreenRef.current = element;
-          };
-          localScreenRef.current = element;
-          element.style.display = "none";
-          element.play().catch(() => {});
-        }
-        // The screen track is an internal capture source for the compositor.
-        // Do not append it over the composite preview: doing so hides the
-        // composited canvas and makes the selected game/window appear missing.
+
+      if (!enabled) {
+        await room.localParticipant.setScreenShareEnabled(false);
+        localScreenRef.current?.remove();
+        localScreenRef.current = null;
+        setScreenSharing(false);
+        return false;
       }
-      setScreenSharing(enabled);
-      return enabled;
+
+      // LiveKit returns the LocalTrackPublication created by the browser
+      // picker. Waiting for that publication avoids the race where the
+      // compositor starts drawing before the selected window has a track.
+      const publication = await room.localParticipant.setScreenShareEnabled(true, { audio: true });
+      const track = publication?.track;
+      if (!track) throw new Error("La capture n’a pas été créée. Choisis une fenêtre puis réessaie.");
+
+      const element = track.attach();
+      if (!(element instanceof HTMLVideoElement)) {
+        throw new Error("La capture de fenêtre n’est pas une vidéo utilisable.");
+      }
+
+      element.className = "livekit-video livekit-screen";
+      element.autoplay = true;
+      element.playsInline = true;
+      element.muted = true;
+      element.style.display = "none";
+      localScreenRef.current = element;
+
+      await new Promise<void>((resolve) => {
+        if (element.readyState >= 2) return resolve();
+        const done = () => resolve();
+        element.addEventListener("loadeddata", done, { once: true });
+        element.addEventListener("canplay", done, { once: true });
+        window.setTimeout(done, 1500);
+      });
+      await element.play().catch(() => {});
+
+      // Make the compositor draw the newly selected window immediately.
+      setScreenSharing(true);
+      setError("");
+      return true;
     } catch (e) {
+      localScreenRef.current?.remove();
+      localScreenRef.current = null;
+      setScreenSharing(false);
       setError(e instanceof Error ? e.message : "Impossible de partager la fenêtre.");
-      return screenSharing;
+      return false;
     }
   }
 
