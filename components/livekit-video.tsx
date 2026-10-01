@@ -222,7 +222,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
             if (publication.track) attach(publication.track, participant, publication);
           }
           for (const publication of participant.audioTrackPublications.values()) {
-            if (publication.track) attach(publication.track, participant, publication.source);
+            if (publication.track) attach(publication.track, participant, publication);
           }
         }
       } catch (e) {
