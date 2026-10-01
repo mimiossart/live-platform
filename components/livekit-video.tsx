@@ -107,6 +107,15 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
           element.className = source === Track.Source.ScreenShare
             ? "livekit-video livekit-screen"
             : "livekit-video";
+          const updateStageRatio = () => {
+            const stage = containerRef.current?.closest(".stage");
+            if (!stage) return;
+            stage.classList.toggle("live-landscape", element.videoWidth >= element.videoHeight);
+            stage.classList.toggle("live-portrait", element.videoHeight > element.videoWidth);
+          };
+          element.addEventListener("loadedmetadata", updateStageRatio, { once: true });
+          if (element.readyState >= 1) updateStageRatio();
+        }
           element.autoplay = true;
           element.playsInline = true;
           element.muted = true;
@@ -211,6 +220,14 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
               element.className = "livekit-video";
               element.autoplay = true;
               element.playsInline = true;
+              const updateStageRatio = () => {
+                const stage = containerRef.current?.closest(".stage");
+                if (!stage) return;
+                stage.classList.toggle("live-landscape", element.videoWidth >= element.videoHeight);
+                stage.classList.toggle("live-portrait", element.videoHeight > element.videoWidth);
+              };
+              element.addEventListener("loadedmetadata", updateStageRatio, { once: true });
+              if (element.readyState >= 1) updateStageRatio();
             }
             getSlot(room.localParticipant.identity, true)?.replaceChildren(element);
           }
