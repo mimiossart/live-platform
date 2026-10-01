@@ -16,3 +16,49 @@
 .live-overlay-image{position:absolute;right:16px;top:16px;z-index:7;max-width:32%;max-height:32%;object-fit:contain;pointer-events:none;border-radius:10px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.35))}.gift-summary{margin-top:10px;padding:10px 12px;border:1px solid #333;border-radius:12px;background:#111}.gift-summary div{margin-top:5px;color:#ddd}.live-gifts{width:100%;position:relative;z-index:30}.live-gifts .gift-grid{position:relative;z-index:31}
 
 .livekit-participant{position:relative}.livekit-screen{position:absolute!important;inset:0;width:100%!important;height:100%!important;z-index:4;object-fit:contain!important;background:#000;border-radius:inherit}.livekit-participant .livekit-video:not(.livekit-screen){position:relative;z-index:1}
+
+/* TikTok-style spectator live */
+.mobile-live-actions{display:none}
+@media(max-width:700px){
+  html,body{background:#000}
+  .app{min-height:100svh}
+  .shell{padding:0 0 70px;max-width:none}
+  .topbar{position:fixed;left:0;right:0;top:0;height:52px;padding:0 10px;z-index:100;background:linear-gradient(rgba(0,0,0,.72),transparent);border:0}
+  .topbar .brand{font-size:19px}
+  .topbar .ghost{padding:7px 10px;background:rgba(0,0,0,.35);border-color:rgba(255,255,255,.18)}
+  .topbar .ghost:first-of-type{display:none}
+  .live-layout{display:block}
+  .live-layout>section{width:100%}
+  .stage{height:100svh;min-height:0;width:100%;border-radius:0;background:#000}
+  .livekit-container{border-radius:0}
+  .livekit-video{object-fit:cover}
+  .overlay{background:linear-gradient(transparent 45%,rgba(0,0,0,.88) 100%)}
+  .stage>div[style*="bottom:18px"]{left:14px!important;right:78px!important;bottom:92px!important;z-index:40!important}
+  .stage>div[style*="bottom:18px"] h2{font-size:18px!important;margin:6px 0!important}
+  .stage>div[style*="bottom:18px"] .muted{font-size:12px}
+  .mobile-live-actions{display:flex;position:absolute;right:10px;bottom:105px;z-index:45;flex-direction:column;align-items:center;gap:4px}
+  .mobile-round{width:50px;height:50px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.48);backdrop-filter:blur(10px);color:#fff;font-size:24px;display:grid;place-items:center}
+  .mobile-gift{background:#ff2d68;border-color:#ff2d68;box-shadow:0 6px 24px rgba(255,45,104,.35)}
+  .mobile-count{font-size:10px;color:#fff;text-shadow:0 1px 4px #000;margin-bottom:5px}
+  .chat{position:fixed;left:10px;right:78px;bottom:66px;height:29vh;min-height:150px;max-height:270px;z-index:38;border:0;background:linear-gradient(transparent,rgba(0,0,0,.22));box-shadow:none;backdrop-filter:none;border-radius:0;pointer-events:auto}
+  .chat-head{background:transparent;border:0;padding:4px 8px;font-size:12px;color:#ddd}
+  .messages{padding:4px 8px;gap:7px;align-content:end;overflow:hidden;mask-image:linear-gradient(transparent 0,#000 18%,#000 100%)}
+  .message{font-size:13px;text-shadow:0 1px 4px #000}
+  .chat-form{background:rgba(0,0,0,.32);border:0;border-radius:999px;padding:5px;backdrop-filter:blur(8px)}
+  .chat-form input{background:rgba(20,20,20,.7);border:1px solid rgba(255,255,255,.16);padding:9px 12px;border-radius:999px}
+  .chat-form button{width:42px;height:42px;border-radius:50%;padding:0}
+  .live-gifts{position:fixed!important;left:10px;right:10px;bottom:14px;z-index:120;width:auto!important;margin:0!important;display:flex;justify-content:center}
+  .live-gifts>button{display:none}
+  .live-gifts .gift-grid{position:fixed;left:8px;right:8px;bottom:66px;width:auto;max-width:none;max-height:48svh;overflow:auto;padding:10px;border-radius:20px;background:rgba(12,12,12,.96);backdrop-filter:blur(18px);border:1px solid #333;grid-template-columns:repeat(4,minmax(58px,1fr));z-index:121}
+  .live-gifts .gift-card{min-height:72px}
+  .live-gifts .gift-grid:not(:has(*)){display:none}
+  .live-gifts:after{content:"🎁 Cadeaux";display:flex;align-items:center;justify-content:center;height:42px;min-width:125px;padding:0 18px;border-radius:999px;background:#ff2d68;color:#fff;font-weight:900;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+  .live-overlay-image{right:68px;top:60px;max-width:28%;max-height:22%}
+  .gift-burst-layer{padding-bottom:190px}
+}
+@media(max-width:420px){
+  .mobile-live-actions{right:8px;bottom:100px}
+  .mobile-round{width:46px;height:46px}
+  .chat{right:68px}
+  .live-gifts .gift-grid{grid-template-columns:repeat(4,minmax(52px,1fr));padding:8px}
+}
