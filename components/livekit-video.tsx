@@ -286,8 +286,11 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
       }
       for(const s of sources){
         if(s.type==="camera"&&localCameraRef.current){
-          const x=w*(s.x/100-s.w/200),y=h*(s.y/100-s.h/200),sw=w*s.w/100,sh=h*s.h/100;
-          ctx.save();ctx.beginPath();ctx.roundRect(x,y,sw,sh,18);ctx.clip();
+          const fullCamera=!hasScreen;
+          const x=fullCamera?0:w*(s.x/100-s.w/200),y=fullCamera?0:h*(s.y/100-s.h/200);
+          const sw=fullCamera?w:w*s.w/100,sh=fullCamera?h:h*s.h/100;
+          ctx.save();
+          if(!fullCamera){ctx.beginPath();ctx.roundRect(x,y,sw,sh,18);ctx.clip();}
           fitVideo(localCameraRef.current,x,y,sw,sh,"contain");
           ctx.restore();
         }
