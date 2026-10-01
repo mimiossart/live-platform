@@ -288,7 +288,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
         const dw=vw*scale,dh=vh*scale;
         ctx.drawImage(video,x+(sw-dw)/2,y+(sh-dh)/2,dw,dh);
       };
-      if(game&&hasScreen){const gx=w*(game.x/100-game.w/200),gy=h*(game.y/100-game.h/200),gw=w*game.w/100,gh=h*game.h/100;fitVideo(localScreenRef.current!,gx,gy,gw,gh,"contain");}
+      if(game&&hasScreen){const gx=w*game.x/100,gy=h*game.y/100,gw=w*game.w/100,gh=h*game.h/100;fitVideo(localScreenRef.current!,gx,gy,gw,gh,"contain");}
       else if(game){ctx.fillStyle="#050505";ctx.fillRect(0,0,w,h);}
       if(!hasScreen && localCameraRef.current && !game){
         fitVideo(localCameraRef.current,0,0,w,h,"contain");
