@@ -270,12 +270,27 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
     const draw=()=>{
       const w=canvas.width,h=canvas.height;
       ctx.fillStyle="#050505";ctx.fillRect(0,0,w,h);
-      const sources=sceneSourcesRef.current.length?sceneSourcesRef.current:[{type:"game",x:50,y:50,w:100,h:100}];
+      const sources=sceneSourcesRef.current.length?sceneSourcesRef.current:[{type:"camera",x:50,y:50,w:100,h:100}];
       const game=sources.find((s:any)=>s.type==="game");
-      if(game&&localScreenRef.current&&localScreenRef.current.readyState>=2)ctx.drawImage(localScreenRef.current,0,0,w,h);
-      else if(game){ctx.fillStyle="#111";ctx.fillRect(0,0,w,h);ctx.fillStyle="#777";ctx.font="700 28px sans-serif";ctx.textAlign="center";ctx.fillText("🎮 Partage du jeu",w/2,h/2)}
+      const hasScreen=!!localScreenRef.current&&localScreenRef.current.readyState>=2;
+      const fitVideo=(video:HTMLVideoElement,x:number,y:number,sw:number,sh:number,mode:"contain"|"cover"="contain")=>{
+        const vw=video.videoWidth||16,vh=video.videoHeight||9;
+        const scale=mode==="cover"?Math.max(sw/vw,sh/vh):Math.min(sw/vw,sh/vh);
+        const dw=vw*scale,dh=vh*scale;
+        ctx.drawImage(video,x+(sw-dw)/2,y+(sh-dh)/2,dw,dh);
+      };
+      if(game&&hasScreen)ctx.drawImage(localScreenRef.current!,0,0,w,h);
+      else if(game){ctx.fillStyle="#050505";ctx.fillRect(0,0,w,h);}
+      if(!hasScreen && localCameraRef.current && !game){
+        fitVideo(localCameraRef.current,0,0,w,h,"contain");
+      }
       for(const s of sources){
-        if(s.type==="camera"&&localCameraRef.current){const x=w*(s.x/100-s.w/200),y=h*(s.y/100-s.h/200),sw=w*s.w/100,sh=h*s.h/100;ctx.save();ctx.beginPath();ctx.roundRect(x,y,sw,sh,18);ctx.clip();ctx.drawImage(localCameraRef.current,x,y,sw,sh);ctx.restore()}
+        if(s.type==="camera"&&localCameraRef.current){
+          const x=w*(s.x/100-s.w/200),y=h*(s.y/100-s.h/200),sw=w*s.w/100,sh=h*s.h/100;
+          ctx.save();ctx.beginPath();ctx.roundRect(x,y,sw,sh,18);ctx.clip();
+          fitVideo(localCameraRef.current,x,y,sw,sh,"contain");
+          ctx.restore();
+        }
         if((s.type==="image"||s.type==="video")&&s.mediaUrl){const m=getMedia(s);if(m&&((m instanceof HTMLImageElement&&m.complete)||(m instanceof HTMLVideoElement&&m.readyState>=2))){const x=w*(s.x/100-s.w/200),y=h*(s.y/100-s.h/200),sw=w*s.w/100,sh=h*s.h/100;ctx.drawImage(m,x,y,sw,sh)}}
         if(s.type==="text"){ctx.fillStyle="#fff";ctx.font="700 34px sans-serif";ctx.textAlign="left";ctx.fillText(s.label?.replace("🔤 ","")||"LiveWave",w*s.x/100,h*s.y/100)}
         if(s.type==="banner"){const x=w*(s.x/100-s.w/200),y=h*(s.y/100-s.h/200),sw=w*s.w/100,sh=h*s.h/100;ctx.fillStyle="rgba(255,45,104,.92)";ctx.fillRect(x,y,sw,sh);ctx.fillStyle="#fff";ctx.font="700 28px sans-serif";ctx.textAlign="center";ctx.fillText(s.label?.replace("📢 ","")||"LIVE",x+sw/2,y+sh/2+10)}
