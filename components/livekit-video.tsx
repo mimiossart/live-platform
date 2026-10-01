@@ -393,7 +393,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
         throw new Error("La capture de fenêtre n’est pas une vidéo utilisable.");
       }
 
-      element.className = "livekit-video livekit-screen";
+      element.className = "livekit-capture-source";
       element.autoplay = true;
       element.playsInline = true;
       element.muted = true;
