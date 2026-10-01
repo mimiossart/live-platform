@@ -115,7 +115,6 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
           };
           element.addEventListener("loadedmetadata", updateStageRatio, { once: true });
           if (element.readyState >= 1) updateStageRatio();
-        }
           element.autoplay = true;
           element.playsInline = true;
           element.muted = true;
