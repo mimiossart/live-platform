@@ -288,7 +288,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
         const dw=vw*scale,dh=vh*scale;
         ctx.drawImage(video,x+(sw-dw)/2,y+(sh-dh)/2,dw,dh);
       };
-      if(game&&hasScreen){const gx=w*game.x/100,gy=h*game.y/100,gw=w*game.w/100,gh=h*game.h/100;fitVideo(localScreenRef.current!,gx,gy,gw,gh,"contain");}
+      if(game&&hasScreen){const gx=w*game.x/100,gy=h*game.y/100,gw=w*game.w/100,gh=h*game.h/100;fitVideo(localScreenRef.current!,gx,gy,gw,gh,"cover");}
       else if(game){ctx.fillStyle="#050505";ctx.fillRect(0,0,w,h);}
       if(!hasScreen && localCameraRef.current && !game){
         fitVideo(localCameraRef.current,0,0,w,h,"contain");
@@ -372,8 +372,11 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
           localScreenRef.current = element;
           element.play().catch(()=>{});
         }
-        const slot = containerRef.current?.querySelector(`[data-participant="${CSS.escape(room.localParticipant.identity)}"]`) as HTMLDivElement | null;
-        if (slot) slot.appendChild(element);
+        // The screen track is an internal capture source for the compositor.
+        // Do not append it over the composite preview: doing so hides the
+        // composited canvas and makes the selected game/window appear missing.
+        localScreenRef.current = element;
+        element.style.display = "none";
       }
       setScreenSharing(enabled);
       return enabled;
@@ -386,7 +389,23 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
   useEffect(()=>{const c=compositeRef.current?.canvas;if(c){c.width=orientationRef.current==="portrait"?1080:1920;c.height=orientationRef.current==="portrait"?1920:1080;}},[orientation]);
   useImperativeHandle(ref, () => ({ toggleCamera, toggleMicrophone, toggleScreenShare }), [isOwner, isGuest, screenSharing]);
 
-  useEffect(()=>{ const p=roomRef.current?.localParticipant; const pub=p?.getTrackPublication(Track.Source.ScreenShare); const t=pub?.track; if(t){const el=t.attach(); if(el instanceof HTMLVideoElement){el.muted=true;el.playsInline=true;el.play().catch(()=>{});localScreenRef.current=el;}} return ()=>{localScreenRef.current?.remove();localScreenRef.current=null}; },[screenSharing]);
+  useEffect(()=>{ 
+    const p=roomRef.current?.localParticipant;
+    const pub=p?.getTrackPublication(Track.Source.ScreenShare);
+    const t=pub?.track;
+    if(t){
+      const el=t.attach();
+      if(el instanceof HTMLVideoElement){
+        el.muted=true;
+        el.playsInline=true;
+        el.autoplay=true;
+        el.style.display="none";
+        el.play().catch(()=>{});
+        localScreenRef.current=el;
+      }
+    }
+    return ()=>{};
+  },[screenSharing]);
 
   async function enableAudio() {
     const room = roomRef.current;
