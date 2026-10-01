@@ -293,6 +293,103 @@
   }
 }
 
+/* Mobile LIVE: keep chat as a right-side panel, TikTok-style. */
+@media(max-width:700px){
+  .live-layout{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 108px!important;
+    gap:0!important;
+    width:100vw!important;
+    height:100svh!important;
+    overflow:hidden!important;
+  }
+  .live-layout>section{
+    width:auto!important;
+    min-width:0!important;
+    height:100svh!important;
+  }
+  .live-layout>.stage{
+    width:100%!important;
+    height:100svh!important;
+    min-height:0!important;
+    aspect-ratio:auto!important;
+  }
+  .live-layout>.chat{
+    position:relative!important;
+    inset:auto!important;
+    width:108px!important;
+    height:100svh!important;
+    min-height:0!important;
+    max-height:none!important;
+    border:0!important;
+    border-left:1px solid #242424!important;
+    border-radius:0!important;
+    background:#090909!important;
+    display:flex!important;
+    z-index:90!important;
+  }
+  .live-layout>.chat .chat-head{
+    padding:10px 6px!important;
+    font-size:11px!important;
+    text-align:center;
+    white-space:nowrap;
+    overflow:hidden;
+  }
+  .live-layout>.chat .messages{
+    padding:6px!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    align-content:end!important;
+  }
+  .live-layout>.chat .message{
+    font-size:11px!important;
+    line-height:1.25!important;
+    overflow-wrap:anywhere;
+  }
+  .live-layout>.chat .chat-form{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:5px!important;
+    padding:6px!important;
+    background:#090909!important;
+    border-top:1px solid #242424!important;
+  }
+  .live-layout>.chat .chat-form input{
+    width:100%!important;
+    min-width:0!important;
+    padding:8px 7px!important;
+    font-size:11px!important;
+    border-radius:10px!important;
+  }
+  .live-layout>.chat .chat-form button{
+    width:100%!important;
+    height:34px!important;
+    padding:0!important;
+    border-radius:10px!important;
+    font-size:11px!important;
+  }
+  .mobile-live-actions{
+    right:116px!important;
+    bottom:105px!important;
+  }
+  .live-gifts{
+    left:auto!important;
+    right:116px!important;
+    bottom:14px!important;
+  }
+  .live-gifts .gift-grid{
+    left:8px!important;
+    right:116px!important;
+  }
+}
+@media(max-width:420px){
+  .live-layout{grid-template-columns:minmax(0,1fr) 100px!important}
+  .live-layout>.chat{width:100px!important}
+  .mobile-live-actions{right:108px!important}
+  .live-gifts{right:108px!important}
+  .live-gifts .gift-grid{right:108px!important}
+}
+
 /* iOS: use the actual video element for native fullscreen. */
 .live-layout>.stage video:fullscreen{
   width:100vw!important;
