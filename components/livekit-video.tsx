@@ -76,10 +76,31 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
         const cameraPublications = Array.from(participant.videoTrackPublications.values())
           .filter((p) => p.source === Track.Source.Camera);
         const activeComposite = cameraPublications.find(isCompositePublication);
+        const hasComposite = !!activeComposite;
 
         // The Studio publishes the final scene as "livewave-composite".
-        // Never let the raw camera replace it when both are available.
-        if (source === Track.Source.Camera && !composite && activeComposite) return;
+        // The spectator subscribes to that one video only: raw camera and
+        // screen-share tracks are disabled while a composite exists.
+        if (hasComposite && source === Track.Source.ScreenShare) {
+          if (publication?.isSubscribed) publication.setSubscribed(false);
+          return;
+        }
+        if (source === Track.Source.Camera && !composite && activeComposite) {
+          if (publication?.isSubscribed) publication.setSubscribed(false);
+          return;
+        }
+
+        if (composite) {
+          for (const other of participant.videoTrackPublications.values()) {
+            if (other === publication) continue;
+            if (
+              other.source === Track.Source.Camera ||
+              other.source === Track.Source.ScreenShare
+            ) {
+              if (other.isSubscribed) other.setSubscribed(false);
+            }
+          }
+        }
 
         const element = track.attach();
         if (element instanceof HTMLVideoElement) {
@@ -124,7 +145,10 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
         if (isCompositePublication(publication)) {
           const fallback = Array.from(participant.videoTrackPublications.values())
             .find((p) => p.source === Track.Source.Camera && !isCompositePublication(p) && p.track);
-          if (fallback?.track) attach(fallback.track, participant, fallback);
+          if (fallback) {
+            if (!fallback.isSubscribed) fallback.setSubscribed(true);
+            if (fallback.track) attach(fallback.track, participant, fallback);
+          }
         }
 
         const hasVideo = !!slot.querySelector(".livekit-video");
