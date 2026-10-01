@@ -435,24 +435,6 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
   useEffect(()=>{const c=compositeRef.current?.canvas;if(c){c.width=orientationRef.current==="portrait"?1080:1920;c.height=orientationRef.current==="portrait"?1920:1080;}},[orientation]);
   useImperativeHandle(ref, () => ({ toggleCamera, toggleMicrophone, toggleScreenShare }), [isOwner, isGuest, screenSharing]);
 
-  useEffect(()=>{ 
-    const p=roomRef.current?.localParticipant;
-    const pub=p?.getTrackPublication(Track.Source.ScreenShare);
-    const t=pub?.track;
-    if(t){
-      const el=t.attach();
-      if(el instanceof HTMLVideoElement){
-        el.muted=true;
-        el.playsInline=true;
-        el.autoplay=true;
-        el.style.display="none";
-        el.play().catch(()=>{});
-        localScreenRef.current=el;
-      }
-    }
-    return ()=>{};
-  },[screenSharing]);
-
   async function enableAudio() {
     const room = roomRef.current;
     if (!room) return;
@@ -473,9 +455,6 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
         <button className="camera-hint" style={{ cursor: "pointer", border: 0 }} onClick={enableAudio}>
           ▶ Appuie ici pour activer le son
         </button>
-      )}
-      {(isOwner || isGuest) && !error && (
-        <div className="camera-hint">Micro actif. Ajoute une source Caméra pour afficher ta caméra.</div>
       )}
     </div>
   );
