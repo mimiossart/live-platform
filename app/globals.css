@@ -467,3 +467,9 @@
   .gift-burst-icon{width:88px;height:88px;font-size:64px!important}
   .gift-burst-text{font-size:12px!important}
 }
+
+/* TikTok LIVE-style repeated likes */
+.live-like-combo{position:absolute;right:18px;bottom:118px;z-index:320;padding:7px 12px;border-radius:999px;background:rgba(0,0,0,.65);border:1px solid rgba(255,45,104,.35);color:#ff5b8a;font-weight:1000;font-size:13px;pointer-events:none;animation:liveCombo .9s ease-out}
+.live-like-button{border-color:rgba(255,45,104,.45)!important;color:#ff6b93!important}
+.mobile-like-button{color:#ff6b93!important}
+@keyframes liveCombo{0%{opacity:0;transform:translateY(8px) scale(.8)}20%{opacity:1;transform:translateY(0) scale(1.08)}100%{opacity:0;transform:translateY(-16px) scale(1)}}
