@@ -81,10 +81,9 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
         // The Studio publishes the final scene as "livewave-composite".
         // The spectator subscribes to that one video only: raw camera and
         // screen-share tracks are disabled while a composite exists.
-        if (hasComposite && source === Track.Source.ScreenShare) {
-          if (publication?.isSubscribed) publication.setSubscribed(false);
-          return;
-        }
+        // Keep native screen-share video subscribed even when the composite track
+        // exists. It is the reliable fallback for browser/window capture; the
+        // compositor can still render camera and overlays when its frames work.
         if (source === Track.Source.Camera && !composite && activeComposite) {
           if (publication?.isSubscribed) publication.setSubscribed(false);
           return;
@@ -94,8 +93,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
           for (const other of participant.videoTrackPublications.values()) {
             if (other === publication) continue;
             if (
-              other.source === Track.Source.Camera ||
-              other.source === Track.Source.ScreenShare
+              other.source === Track.Source.Camera
             ) {
               if (other.isSubscribed) other.setSubscribed(false);
             }
@@ -393,7 +391,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
         throw new Error("La capture de fenêtre n’est pas une vidéo utilisable.");
       }
 
-      element.className = "livekit-capture-source";
+      element.className = "livekit-video livekit-screen";
       element.autoplay = true;
       element.playsInline = true;
       element.muted = true;
@@ -401,13 +399,13 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
       // Keep it inside the Studio video container but visually hidden; an
       // off-screen detached video can stay at readyState 0 / videoWidth 0.
       element.style.position = "absolute";
-      element.style.left = "0";
-      element.style.bottom = "0";
-      element.style.width = "2px";
-      element.style.height = "2px";
-      element.style.opacity = "0.01";
+      element.style.inset = "0";
+      element.style.width = "100%";
+      element.style.height = "100%";
+      element.style.opacity = "1";
+      element.style.objectFit = "contain";
       element.style.pointerEvents = "none";
-      element.style.zIndex = "0";
+      element.style.zIndex = "4";
       containerRef.current?.appendChild(element);
       localScreenRef.current = element;
 
