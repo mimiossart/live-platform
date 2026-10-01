@@ -211,7 +211,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
         if (!isOwner) setNeedsAudio(!room.canPlaybackAudio);
 
         if (isOwner || isGuest) {
-          await room.localParticipant.enableCameraAndMicrophone();
+          await room.localParticipant.setMicrophoneEnabled(true);
           const publication = room.localParticipant.getTrackPublication(Track.Source.Camera);
           if (publication?.track) {
             const element = publication.track.attach();
@@ -295,8 +295,8 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
     const draw=()=>{
       const w=canvas.width,h=canvas.height;
       ctx.fillStyle="#050505";ctx.fillRect(0,0,w,h);
-      const sources=sceneSourcesRef.current.length?sceneSourcesRef.current:[{type:"camera",x:50,y:50,w:100,h:100}];
-      const game=sources.find((s:any)=>s.type==="game");
+      const sources=sceneSourcesRef.current;
+      const game=sources.find((s:any)=>["game","window","screen"].includes(s.type));
       const hasScreen=!!localScreenRef.current&&localScreenRef.current.readyState>=2;
       const fitVideo=(video:HTMLVideoElement,x:number,y:number,sw:number,sh:number,mode:"contain"|"cover"="contain")=>{
         const vw=video.videoWidth||16,vh=video.videoHeight||9;
@@ -435,18 +435,6 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
   return (
     <div className="video-live">
       <div ref={containerRef} className={"livekit-container filter-"+filter+(battle?" battle-mode":"")} />
-      {(isOwner || isGuest) && !error && <div className="live-effects">
-        <button type="button" onClick={()=>setFilter("normal")}>Normal</button>
-        <button type="button" onClick={()=>setFilter("warm")}>✨ Chaud</button>
-        <button type="button" onClick={()=>setFilter("mono")}>⚫ N&B</button>
-        <button type="button" onClick={()=>setFilter("vivid")}>🌈 Vif</button>
-        <button type="button" onClick={()=>applyBackground("blur")}>🌫️ Flou</button>
-        <button type="button" onClick={()=>applyBackground("none")}>Fond réel</button>
-        <input value={backgroundUrl} onChange={e=>setBackgroundUrl(e.target.value)} placeholder="URL image de fond" />
-        <button type="button" onClick={()=>applyBackground("image")}>🖼️ Fond virtuel</button>
-        <button type="button" onClick={toggleScreenShare}>{screenSharing?"⏹️ Arrêter le partage":"🎮 Partager une fenêtre / jeu"}</button>
-        {background!=="none" && <span>Effet: {background}</span>}
-      </div>}
       {!error && status && <div className="video-status">{status}</div>}
       {error && <div className="video-error">{error}</div>}
       {needsAudio && !error && (
@@ -455,7 +443,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
         </button>
       )}
       {(isOwner || isGuest) && !error && (
-        <div className="camera-hint">Caméra et micro actifs — autorise-les dans ton navigateur.</div>
+        <div className="camera-hint">Micro actif. Ajoute une source Caméra pour afficher ta caméra.</div>
       )}
     </div>
   );
