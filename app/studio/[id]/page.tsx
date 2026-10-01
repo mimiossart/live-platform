@@ -167,3 +167,4 @@ if(!live)return <main className="studio-app">
   </section></div>}
   {error&&<div className="studio-error">{error}</div>}
 </main>
+}
