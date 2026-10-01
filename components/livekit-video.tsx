@@ -247,8 +247,10 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
   async function startComposite(room: Room) {
     if (!composite || compositeRef.current || !room.localParticipant) return;
     const canvas=document.createElement("canvas");
-    canvas.width=orientationRef.current==="portrait"?720:1280;
-    canvas.height=orientationRef.current==="portrait"?1280:720;
+    // TikTok-style LIVE canvas: 1080x1920 vertical / 1920x1080 horizontal.
+    // 30 FPS keeps the stream stable for game + camera compositing.
+    canvas.width=orientationRef.current==="portrait"?1080:1920;
+    canvas.height=orientationRef.current==="portrait"?1920:1080;
     const ctx=canvas.getContext("2d"); if(!ctx) return;
     const stream=canvas.captureStream(30); const videoTrack=stream.getVideoTracks()[0]; if(!videoTrack) return;
     const track=new LocalVideoTrack(videoTrack, { width: canvas.width, height: canvas.height }, false);
@@ -301,7 +303,12 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
       if(compositeRef.current) compositeRef.current.raf=requestAnimationFrame(draw);
     };
     compositeRef.current={canvas,track,stream,raf:0}; compositeRef.current.raf=requestAnimationFrame(draw);
-    await room.localParticipant.publishTrack(track,{name:"livewave-composite",source:Track.Source.Camera,simulcast:false});
+    await room.localParticipant.publishTrack(track,{
+      name:"livewave-composite",
+      source:Track.Source.Camera,
+      simulcast:false,
+      videoEncoding:{maxBitrate:5400000,maxFramerate:30},
+    });
     if(camTrack) await room.localParticipant.unpublishTrack(camTrack,false);
   }
 
@@ -333,6 +340,12 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
           element.autoplay = true;
           element.playsInline = true;
           element.muted = true;
+          element.playsInline = true;
+          element.onloadedmetadata = () => {
+            localScreenRef.current = element;
+          };
+          localScreenRef.current = element;
+          element.play().catch(()=>{});
         }
         const slot = containerRef.current?.querySelector(`[data-participant="${CSS.escape(room.localParticipant.identity)}"]`) as HTMLDivElement | null;
         if (slot) slot.appendChild(element);
@@ -345,7 +358,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
     }
   }
 
-  useEffect(()=>{const c=compositeRef.current?.canvas;if(c){c.width=orientationRef.current==="portrait"?720:1280;c.height=orientationRef.current==="portrait"?1280:720;}},[orientation]);
+  useEffect(()=>{const c=compositeRef.current?.canvas;if(c){c.width=orientationRef.current==="portrait"?1080:1920;c.height=orientationRef.current==="portrait"?1920:1080;}},[orientation]);
   useImperativeHandle(ref, () => ({ toggleCamera, toggleMicrophone, toggleScreenShare }), [isOwner, isGuest, screenSharing]);
 
   useEffect(()=>{ const p=roomRef.current?.localParticipant; const pub=p?.getTrackPublication(Track.Source.ScreenShare); const t=pub?.track; if(t){const el=t.attach(); if(el instanceof HTMLVideoElement){el.muted=true;el.playsInline=true;el.play().catch(()=>{});localScreenRef.current=el;}} return ()=>{localScreenRef.current?.remove();localScreenRef.current=null}; },[screenSharing]);
