@@ -85,3 +85,14 @@
   .live-layout>.stage{height:calc(100svh - 52px - 170px)}
   .live-layout>.chat{height:170px;min-height:170px}
 }
+
+/* Match the spectator frame to the actual published stream ratio. */
+.live-layout>.stage{height:auto;min-height:0;aspect-ratio:16/9}
+.live-layout>.stage.live-landscape{aspect-ratio:16/9;height:auto}
+.live-layout>.stage.live-portrait{aspect-ratio:9/16;height:auto}
+.live-layout>.stage .livekit-container{width:100%;height:100%}
+@media(max-width:700px){
+  .live-layout>.stage{height:auto;min-height:0;aspect-ratio:9/16}
+  .live-layout>.stage.live-landscape{aspect-ratio:16/9;height:auto}
+  .live-layout>.stage.live-portrait{aspect-ratio:9/16;height:auto}
+}
