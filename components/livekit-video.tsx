@@ -62,15 +62,43 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
       return slot;
     };
 
-    const attach = (track: RemoteTrack, participant: RemoteParticipant, source?: Track.Source) => {
+    const isCompositePublication = (publication?: RemoteTrackPublication | null) =>
+      publication?.trackName === "livewave-composite";
+
+    const attach = (
+      track: RemoteTrack,
+      participant: RemoteParticipant,
+      publication?: RemoteTrackPublication,
+    ) => {
+      const source = publication?.source;
       if (track.kind === Track.Kind.Video) {
+        const composite = isCompositePublication(publication);
+        const cameraPublications = Array.from(participant.videoTrackPublications.values())
+          .filter((p) => p.source === Track.Source.Camera);
+        const activeComposite = cameraPublications.find(isCompositePublication);
+
+        // The Studio publishes the final scene as "livewave-composite".
+        // Never let the raw camera replace it when both are available.
+        if (source === Track.Source.Camera && !composite && activeComposite) return;
+
         const element = track.attach();
         if (element instanceof HTMLVideoElement) {
-          element.className = source === Track.Source.ScreenShare ? "livekit-video livekit-screen" : "livekit-video";
+          element.className = source === Track.Source.ScreenShare
+            ? "livekit-video livekit-screen"
+            : "livekit-video";
           element.autoplay = true;
           element.playsInline = true;
+          element.muted = true;
         }
-        const slot=getSlot(participant.identity); if(source===Track.Source.ScreenShare){slot?.appendChild(element);} else {slot?.replaceChildren(element);}
+
+        const slot = getSlot(participant.identity);
+        if (source === Track.Source.ScreenShare) {
+          slot?.appendChild(element);
+        } else if (composite) {
+          slot?.replaceChildren(element);
+        } else if (!slot?.querySelector(".livekit-video")) {
+          slot?.appendChild(element);
+        }
       } else {
         const element = track.attach();
         element.className = "livekit-audio";
@@ -79,13 +107,28 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
       }
     };
 
-    const removeTrack = (track: RemoteTrack, participant: RemoteParticipant) => {
+    const removeTrack = (
+      track: RemoteTrack,
+      participant: RemoteParticipant,
+      publication?: RemoteTrackPublication,
+    ) => {
       track.detach().forEach((element) => element.remove());
       if (track.kind === Track.Kind.Video) {
         const slot = containerRef.current?.querySelector(
           `[data-participant="${CSS.escape(participant.identity)}"]`,
         );
-        if (slot && !slot.querySelector(".livekit-video")) slot.remove();
+        if (!slot) return;
+
+        // If the composite disappears, fall back to the raw camera only when
+        // there is no composite publication left.
+        if (isCompositePublication(publication)) {
+          const fallback = Array.from(participant.videoTrackPublications.values())
+            .find((p) => p.source === Track.Source.Camera && !isCompositePublication(p) && p.track);
+          if (fallback?.track) attach(fallback.track, participant, fallback);
+        }
+
+        const hasVideo = !!slot.querySelector(".livekit-video");
+        if (!hasVideo && !slot.querySelector(".livekit-screen")) slot.remove();
       }
     };
 
@@ -93,13 +136,13 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
       track: RemoteTrack,
       publication: RemoteTrackPublication,
       participant: RemoteParticipant,
-    ) => attach(track, participant, publication.source);
+    ) => attach(track, participant, publication);
 
     const onUnsubscribed = (
       track: RemoteTrack,
-      _publication: RemoteTrackPublication,
+      publication: RemoteTrackPublication,
       participant: RemoteParticipant,
-    ) => removeTrack(track, participant);
+    ) => removeTrack(track, participant, publication);
 
     const onDisconnected = (participant: RemoteParticipant) => {
       const slot = containerRef.current?.querySelector(
@@ -152,7 +195,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
 
         for (const participant of room.remoteParticipants.values()) {
           for (const publication of participant.videoTrackPublications.values()) {
-            if (publication.track) attach(publication.track, participant, publication.source);
+            if (publication.track) attach(publication.track, participant, publication);
           }
           for (const publication of participant.audioTrackPublications.values()) {
             if (publication.track) attach(publication.track, participant, publication.source);
