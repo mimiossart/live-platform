@@ -307,7 +307,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
       if(game&&hasScreen){const gx=w*game.x/100,gy=h*game.y/100,gw=w*game.w/100,gh=h*game.h/100;fitVideo(localScreenRef.current!,gx,gy,gw,gh,"cover");}
       else if(game){ctx.fillStyle="#050505";ctx.fillRect(0,0,w,h);}
       if(!hasScreen && localCameraRef.current && !game){
-        fitVideo(localCameraRef.current,0,0,w,h,"contain");
+        fitVideo(localCameraRef.current,0,0,w,h,"cover");
       }
       for(const s of sources){
         if(s.type==="camera"&&localCameraRef.current){
@@ -316,7 +316,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
           const sw=fullCamera?w:w*s.w/100,sh=fullCamera?h:h*s.h/100;
           ctx.save();
           if(!fullCamera){ctx.beginPath();ctx.roundRect(x,y,sw,sh,18);ctx.clip();}
-          fitVideo(localCameraRef.current,x,y,sw,sh,"contain");
+          fitVideo(localCameraRef.current,x,y,sw,sh,fullCamera?"cover":"contain");
           ctx.restore();
         }
         if((s.type==="image"||s.type==="video")&&s.mediaUrl){const m=getMedia(s);if(m&&((m instanceof HTMLImageElement&&m.complete)||(m instanceof HTMLVideoElement&&m.readyState>=2))){const x=w*(s.x/100-s.w/200),y=h*(s.y/100-s.h/200),sw=w*s.w/100,sh=h*s.h/100;ctx.drawImage(m,x,y,sw,sh)}}
