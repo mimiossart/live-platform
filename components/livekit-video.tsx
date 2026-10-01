@@ -363,7 +363,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
     } catch (e) { setError(e instanceof Error ? e.message : "Impossible d’appliquer le fond."); }
   }
 
-  async function toggleCamera() { const room=roomRef.current; if(!room || (!isOwner&&!isGuest)) return false; const pub=room.localParticipant.getTrackPublication(Track.Source.Camera); if(compositeRef.current && localCameraRef.current?.srcObject instanceof MediaStream){ const track=localCameraRef.current.srcObject.getVideoTracks()[0]; const enabled=!track.enabled; track.enabled=enabled; return enabled; } const enabled=!(pub?.isMuted); await room.localParticipant.setCameraEnabled(!enabled); return !enabled; }
+  async function toggleCamera() { const room=roomRef.current; if(!room || (!isOwner&&!isGuest)) return false; let pub=room.localParticipant.getTrackPublication(Track.Source.Camera); if(!pub?.track){await room.localParticipant.setCameraEnabled(true);pub=room.localParticipant.getTrackPublication(Track.Source.Camera);if(pub?.track){const el=pub.track.attach();if(el instanceof HTMLVideoElement){el.muted=true;el.playsInline=true;el.autoplay=true;await el.play().catch(()=>{});localCameraRef.current=el}}return true} const enabled=!!pub.isMuted; await room.localParticipant.setCameraEnabled(enabled); if(!enabled)localCameraRef.current=null; return enabled; }
 
   async function toggleMicrophone() { const room=roomRef.current; if(!room || (!isOwner&&!isGuest)) return false; const pub=room.localParticipant.getTrackPublication(Track.Source.Microphone); const enabled=!(pub?.isMuted); await room.localParticipant.setMicrophoneEnabled(!enabled); return !enabled; }
 
