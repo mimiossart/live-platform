@@ -365,18 +365,16 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
           element.autoplay = true;
           element.playsInline = true;
           element.muted = true;
-          element.playsInline = true;
           element.onloadedmetadata = () => {
             localScreenRef.current = element;
           };
           localScreenRef.current = element;
-          element.play().catch(()=>{});
+          element.style.display = "none";
+          element.play().catch(() => {});
         }
         // The screen track is an internal capture source for the compositor.
         // Do not append it over the composite preview: doing so hides the
         // composited canvas and makes the selected game/window appear missing.
-        localScreenRef.current = element;
-        element.style.display = "none";
       }
       setScreenSharing(enabled);
       return enabled;
