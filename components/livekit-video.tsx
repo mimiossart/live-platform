@@ -297,7 +297,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
       ctx.fillStyle="#050505";ctx.fillRect(0,0,w,h);
       const sources=sceneSourcesRef.current;
       const game=sources.find((s:any)=>["game","window","screen"].includes(s.type));
-      const hasScreen=!!localScreenRef.current&&localScreenRef.current.readyState>=2;
+      const hasScreen=!!localScreenRef.current&&localScreenRef.current.readyState>=2&&localScreenRef.current.videoWidth>0&&localScreenRef.current.videoHeight>0;
       const fitVideo=(video:HTMLVideoElement,x:number,y:number,sw:number,sh:number,mode:"contain"|"cover"="contain")=>{
         const vw=video.videoWidth||16,vh=video.videoHeight||9;
         const scale=mode==="cover"?Math.max(sw/vw,sh/vh):Math.min(sw/vw,sh/vh);
@@ -397,29 +397,37 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
       element.autoplay = true;
       element.playsInline = true;
       element.muted = true;
-      // Keep the video element decodable: display:none can cause some browsers
-      // to stop updating frames, which makes canvas.drawImage() capture black.
-      // Park it off-screen instead of hiding it with display:none.
-      element.style.position = "fixed";
-      element.style.left = "-10000px";
-      element.style.top = "0";
-      element.style.width = "1280px";
-      element.style.height = "720px";
-      element.style.opacity = "0";
+      // The track must be attached to a live DOM node for reliable decoding.
+      // Keep it inside the Studio video container but visually hidden; an
+      // off-screen detached video can stay at readyState 0 / videoWidth 0.
+      element.style.position = "absolute";
+      element.style.left = "0";
+      element.style.bottom = "0";
+      element.style.width = "2px";
+      element.style.height = "2px";
+      element.style.opacity = "0.01";
       element.style.pointerEvents = "none";
-      element.style.zIndex = "-1";
+      element.style.zIndex = "0";
+      containerRef.current?.appendChild(element);
       localScreenRef.current = element;
 
-      await new Promise<void>((resolve) => {
-        if (element.readyState >= 2) return resolve();
-        const done = () => resolve();
-        element.addEventListener("loadeddata", done, { once: true });
-        element.addEventListener("canplay", done, { once: true });
-        window.setTimeout(done, 1500);
+      await element.play();
+      await new Promise<void>((resolve, reject) => {
+        if (element.readyState >= 2 && element.videoWidth > 0 && element.videoHeight > 0) return resolve();
+        const timeout = window.setTimeout(() => {
+          if (element.videoWidth > 0 && element.videoHeight > 0) resolve();
+          else reject(new Error("La fenêtre est sélectionnée, mais le navigateur ne fournit aucune image. Réessaie en choisissant la fenêtre ou l’écran à partager."));
+        }, 4000);
+        const done = () => {
+          if (element.videoWidth > 0 && element.videoHeight > 0) {
+            window.clearTimeout(timeout);
+            resolve();
+          }
+        };
+        element.addEventListener("loadeddata", done);
+        element.addEventListener("resize", done);
       });
-      await element.play().catch(() => {});
 
-      // Make the compositor draw the newly selected window immediately.
       setScreenSharing(true);
       setError("");
       return true;
