@@ -260,9 +260,20 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
 
   function getLocalPreviewSlot() {
     if (!containerRef.current || !roomRef.current?.localParticipant) return null;
-    return containerRef.current.querySelector(
-      `[data-participant="${CSS.escape(roomRef.current.localParticipant.identity)}"]`,
+    const identity = roomRef.current.localParticipant.identity;
+    let slot = containerRef.current.querySelector(
+      `[data-participant="${CSS.escape(identity)}"]`,
     ) as HTMLDivElement | null;
+    // The camera is intentionally off when Studio opens, so there may be no
+    // local participant slot yet. Create it so the composite preview has a
+    // real place to render even when the first source is a screen/window.
+    if (!slot) {
+      slot = document.createElement("div");
+      slot.dataset.participant = identity;
+      slot.className = "livekit-participant local";
+      containerRef.current.appendChild(slot);
+    }
+    return slot;
   }
 
   async function startComposite(room: Room) {
