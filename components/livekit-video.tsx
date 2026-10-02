@@ -302,7 +302,7 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
         const dw=vw*scale,dh=vh*scale;
         ctx.drawImage(video,x+(sw-dw)/2,y+(sh-dh)/2,dw,dh);
       };
-      if(game&&hasScreen){const gx=w*game.x/100,gy=h*game.y/100,gw=w*game.w/100,gh=h*game.h/100;fitVideo(localScreenRef.current!,gx,gy,gw,gh,"cover");}
+      if(game&&hasScreen){const gw=w*game.w/100,gh=h*game.h/100,gx=w*game.x/100-gw/2,gy=h*game.y/100-gh/2;fitVideo(localScreenRef.current!,gx,gy,gw,gh,"cover");}
       else if(game){ctx.fillStyle="#050505";ctx.fillRect(0,0,w,h);}
       if(!hasScreen && localCameraRef.current && !game){
         fitVideo(localCameraRef.current,0,0,w,h,"cover");
@@ -396,13 +396,13 @@ const LiveKitVideo = forwardRef<LiveKitVideoHandle, Props>(function LiveKitVideo
       element.playsInline = true;
       element.muted = true;
       // The track must be attached to a live DOM node for reliable decoding.
-      // Keep it inside the Studio video container but visually hidden; an
-      // off-screen detached video can stay at readyState 0 / videoWidth 0.
+      // Keep it attached to the Studio video container for reliable decoding,
+      // but hide the raw track so every source is rendered through the same composite.
       element.style.position = "absolute";
       element.style.inset = "0";
       element.style.width = "100%";
       element.style.height = "100%";
-      element.style.opacity = "1";
+      element.style.opacity = "0";
       element.style.objectFit = "contain";
       element.style.pointerEvents = "none";
       element.style.zIndex = "4";
